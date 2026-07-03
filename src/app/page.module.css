@@ -1,142 +1,100 @@
 .page {
-  --background: #fafafa;
-  --foreground: #fff;
-
-  --text-primary: #000;
-  --text-secondary: #666;
-
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  min-height: 100vh;
+  padding: 48px 24px;
   font-family: var(--font-geist-sans);
-  background-color: var(--background);
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 238, 150, 0.7), transparent 28%),
+    linear-gradient(135deg, #fff8d8 0%, #f7f0ff 100%);
 }
 
-.main {
-  display: flex;
-  flex: 1;
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+  gap: 32px;
   width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 48px;
+  border: 2px solid #1f1f1f;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 12px 12px 0 #1f1f1f;
 }
 
-.intro {
+.hero {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
-}
-
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
-  color: var(--text-secondary);
-}
-
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
   justify-content: center;
-  align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
+  gap: 18px;
+}
+
+.eyebrow {
   width: fit-content;
-  font-weight: 500;
+  padding: 8px 12px;
+  border: 1px solid #1f1f1f;
+  border-radius: 999px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+.hero h1 {
+  max-width: 560px;
+  font-size: clamp(42px, 7vw, 72px);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  text-wrap: balance;
+  color: #1f1f1f;
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.hero p,
+.note p {
+  max-width: 560px;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #3f3f3f;
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
+.note {
+  position: relative;
+  display: flex;
+  min-height: 240px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  padding: 36px 28px 28px;
+  border: 2px solid #1f1f1f;
+  border-radius: 8px;
+  background: #fff176;
+  box-shadow: 8px 8px 0 rgba(31, 31, 31, 0.18);
+  transform: rotate(2deg);
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
+.note h2 {
+  font-size: 28px;
+  color: #1f1f1f;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
+.pin {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #1f1f1f;
+  border-radius: 999px;
+  background: #ff6b6b;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 760px) {
+  .board {
+    grid-template-columns: 1fr;
+    padding: 32px 24px;
+    box-shadow: 6px 6px 0 #1f1f1f;
   }
 
-  .page {
-    --background: #000;
-    --foreground: #000;
-
-    --text-primary: #ededed;
-    --text-secondary: #999;
-
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
+  .note {
+    transform: none;
   }
 }
