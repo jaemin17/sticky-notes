@@ -14,7 +14,8 @@
 
 .board {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(156px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
+  justify-content: center;
   gap: 14px;
   width: 100%;
   max-width: 880px;
@@ -38,6 +39,75 @@
   background: var(--note-accent);
   box-shadow: 0 8px 16px rgba(17, 18, 23, 0.1);
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.noteWide {
+  grid-column: span 2;
+}
+
+.composeNote {
+  --note-accent: #fff1a8;
+  --note-color: #d35a16;
+  position: relative;
+  display: flex;
+  min-height: 156px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px dashed rgba(17, 18, 23, 0.2);
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--note-accent) 72%, white);
+  box-shadow: 0 8px 16px rgba(17, 18, 23, 0.08);
+}
+
+.composeLabel {
+  color: color-mix(in oklab, var(--note-color) 78%, #111217);
+  font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.composeInput {
+  flex: 1;
+  width: 100%;
+  resize: none;
+  border: 0;
+  background: transparent;
+  color: #111217;
+  font: inherit;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.42;
+  letter-spacing: 0.03em;
+  outline: none;
+}
+
+.composeInput::placeholder {
+  color: rgba(17, 18, 23, 0.42);
+}
+
+.composeButton {
+  align-self: flex-start;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid rgba(17, 18, 23, 0.16);
+  border-radius: 999px;
+  background: #111217;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  transition: background 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+.composeButton:hover:not(:disabled) {
+  background: #2a2c33;
+  transform: translateY(-1px);
+}
+
+.composeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .yellow {
@@ -90,6 +160,100 @@
   letter-spacing: 0.03em;
 }
 
+.noteActions {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+}
+
+.noteMenuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: color-mix(in oklab, var(--note-color) 78%, #111217);
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 0.6;
+  opacity: 0.68;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.noteMenuButton:hover,
+.noteMenuButton[aria-expanded="true"] {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.noteActionMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 8;
+  min-width: 96px;
+  padding: 5px;
+  border: 1px solid rgba(17, 18, 23, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 20px rgba(17, 18, 23, 0.14);
+}
+
+.noteColorMenu {
+  display: flex;
+  gap: 5px;
+  padding: 3px 3px 6px;
+}
+
+.noteColorButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.noteColorButton[aria-pressed="true"] {
+  border-color: color-mix(in oklab, var(--note-color) 62%, rgba(17, 18, 23, 0.18));
+}
+
+.noteColorDot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(17, 18, 23, 0.12);
+  border-radius: 999px;
+  background: var(--note-accent);
+}
+
+.deleteNoteButton {
+  width: 100%;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in oklab, var(--note-color) 78%, #111217);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.deleteNoteButton:hover {
+  background: color-mix(in oklab, var(--note-accent) 44%, white);
+}
+
 @media (min-width: 1400px) {
   .noteIndex {
     font-size: 16px;
@@ -108,6 +272,10 @@
 
   .note {
     min-height: 168px;
+  }
+
+  .noteWide {
+    grid-column: 1 / -1;
   }
 }
 
