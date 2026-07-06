@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useEffect, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
 
 type NoteTone = "yellow" | "green" | "blue" | "purple" | "orange";
@@ -53,10 +53,9 @@ function readStoredNotes(): LocalNote[] {
 export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [notes, setNotes] = useState<LocalNote[]>([]);
   const [hasLoadedStoredNotes, setHasLoadedStoredNotes] = useState(false);
-  const [text, setText] = useState("");
-  const [selectedTone, setSelectedTone] = useState<NoteTone>("yellow");
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
-  const [isComposeMenuOpen, setIsComposeMenuOpen] = useState(false);
+  const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -68,40 +67,45 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   useEffect(() => {
     if (!hasLoadedStoredNotes) return;
 
-    window.localStorage.setItem(storageKey, JSON.stringify(notes));
+    window.localStorage.setItem(storageKey, JSON.stringify(notes.filter((note) => note.text.trim())));
   }, [hasLoadedStoredNotes, notes]);
 
-  function addNote() {
-    const trimmedText = text.trim();
-    if (!trimmedText) return false;
+  useEffect(() => {
+    if (!editingNoteId) return;
 
+    queueMicrotask(() => {
+      editingTextAreaRef.current?.focus();
+    });
+  }, [editingNoteId]);
+
+  function createBlankNote() {
     const nextNote: LocalNote = {
       id: crypto.randomUUID(),
-      text: trimmedText,
-      tone: selectedTone,
+      text: "",
+      tone: "yellow",
     };
 
     setNotes((currentNotes) => [...currentNotes, nextNote]);
-    setText("");
-    setIsComposeMenuOpen(false);
-    return true;
+    setEditingNoteId(nextNote.id);
+    setOpenMenuNoteId(null);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    addNote();
+  function finishEditing(noteId: string) {
+    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId || note.text.trim()));
+    setEditingNoteId((currentId) => (currentId === noteId ? null : currentId));
   }
 
-  function handleTextKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+  function handleTextKeyDown(event: KeyboardEvent<HTMLTextAreaElement>, noteId: string) {
     if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
 
     event.preventDefault();
-    addNote();
+    finishEditing(noteId);
   }
 
   function deleteNote(noteId: string) {
     setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId));
     setOpenMenuNoteId(null);
+    setEditingNoteId((currentId) => (currentId === noteId ? null : currentId));
   }
 
   function updateNoteTone(noteId: string, tone: NoteTone) {
@@ -113,104 +117,94 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
   return (
     <>
-      <form className={`${styles.composeNote} ${styles[selectedTone]}`} onSubmit={handleSubmit} aria-label="添加新便签">
-        <label className={styles.composeLabel} htmlFor="new-note">
-          新便签
-        </label>
-        <div className={styles.noteActions}>
-          <button
-            className={styles.noteMenuButton}
-            type="button"
-            onClick={() => setIsComposeMenuOpen((isOpen) => !isOpen)}
-            aria-label="更多操作：新便签"
-            aria-expanded={isComposeMenuOpen}
-          >
-            ...
-          </button>
-          {isComposeMenuOpen ? (
-            <div className={styles.noteActionMenu}>
-              <div className={styles.noteColorMenu} aria-label="修改颜色：新便签">
-                {noteTones.map((tone) => (
-                  <button
-                    key={tone}
-                    className={`${styles.noteColorButton} ${styles[tone]}`}
-                    type="button"
-                    onClick={() => {
-                      setSelectedTone(tone);
-                      setIsComposeMenuOpen(false);
-                    }}
-                    aria-label={`改为${toneLabels[tone]}：新便签`}
-                    aria-pressed={selectedTone === tone}
-                  >
-                    <span className={styles.noteColorDot} aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-        <textarea
-          id="new-note"
-          className={styles.composeInput}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={handleTextKeyDown}
-          aria-label="新便签内容"
-          placeholder="写下一条只给自己看的便签..."
-          rows={5}
-        />
-        <button className={styles.composeButton} type="submit" disabled={!text.trim()} aria-label="贴上去">
-          ↑
-        </button>
-      </form>
+      {notes.map((note, noteIndex) => {
+        const noteLabel = note.text.trim() || "新便签";
 
-      {notes.map((note, noteIndex) => (
-        <section
-          key={note.id}
-          className={[styles.note, styles[note.tone], noteWidthClassName(note.text)].filter(Boolean).join(" ")}
-          aria-label="我的便签"
-        >
-          <span className={styles.noteIndex}>{String(initialIndex + noteIndex + 1).padStart(3, "0")}</span>
-          <span className={styles.noteText}>{note.text}</span>
-          <div className={styles.noteActions}>
-            <button
-              className={styles.noteMenuButton}
-              type="button"
-              onClick={() => setOpenMenuNoteId((currentId) => (currentId === note.id ? null : note.id))}
-              aria-label={`更多操作：${note.text}`}
-              aria-expanded={openMenuNoteId === note.id}
+        return (
+          <section
+              key={note.id}
+              className={[styles.note, styles[note.tone], noteWidthClassName(note.text)].filter(Boolean).join(" ")}
+              aria-label={note.text.trim() ? "我的便签" : "新便签"}
+              role="article"
             >
-              ...
-            </button>
-            {openMenuNoteId === note.id ? (
-              <div className={styles.noteActionMenu}>
-                <div className={styles.noteColorMenu} aria-label={`修改颜色：${note.text}`}>
-                  {noteTones.map((tone) => (
-                    <button
-                      key={tone}
-                      className={`${styles.noteColorButton} ${styles[tone]}`}
-                      type="button"
-                      onClick={() => updateNoteTone(note.id, tone)}
-                      aria-label={`改为${toneLabels[tone]}：${note.text}`}
-                      aria-pressed={note.tone === tone}
-                    >
-                      <span className={styles.noteColorDot} aria-hidden="true" />
-                    </button>
-                  ))}
-                </div>
+              <span className={styles.noteIndex}>{String(initialIndex + noteIndex + 1).padStart(3, "0")}</span>
+              {editingNoteId === note.id ? (
+                <textarea
+                  ref={editingTextAreaRef}
+                  className={styles.composeInput}
+                  value={note.text}
+                  onChange={(event) =>
+                    setNotes((currentNotes) =>
+                      currentNotes.map((currentNote) =>
+                        currentNote.id === note.id ? { ...currentNote, text: event.target.value } : currentNote,
+                      ),
+                    )
+                  }
+                  onKeyDown={(event) => handleTextKeyDown(event, note.id)}
+                  onBlur={(event) => {
+                    if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
+                    finishEditing(note.id);
+                  }}
+                  aria-label="编辑便签"
+                  placeholder="写下一条只给自己看的便签..."
+                  rows={5}
+                />
+              ) : (
                 <button
-                  className={styles.deleteNoteButton}
+                  className={styles.noteTextButton}
                   type="button"
-                  onClick={() => deleteNote(note.id)}
-                  aria-label={`删除便签：${note.text}`}
+                  onClick={() => {
+                    setEditingNoteId(note.id);
+                    setOpenMenuNoteId(null);
+                  }}
+                  aria-label={`编辑便签：${note.text}`}
                 >
-                  删除
+                  <span className={styles.noteText}>{note.text}</span>
                 </button>
+              )}
+              <div className={styles.noteActions} onMouseDown={(event) => event.preventDefault()}>
+                <button
+                  className={styles.noteMenuButton}
+                  type="button"
+                  onClick={() => setOpenMenuNoteId((currentId) => (currentId === note.id ? null : note.id))}
+                  aria-label={`更多操作：${noteLabel}`}
+                  aria-expanded={openMenuNoteId === note.id}
+                >
+                  ...
+                </button>
+                {openMenuNoteId === note.id ? (
+                  <div className={styles.noteActionMenu}>
+                    <div className={styles.noteColorMenu} aria-label={`修改颜色：${noteLabel}`}>
+                      {noteTones.map((tone) => (
+                        <button
+                          key={tone}
+                          className={`${styles.noteColorButton} ${styles[tone]}`}
+                          type="button"
+                          onClick={() => updateNoteTone(note.id, tone)}
+                          aria-label={`改为${toneLabels[tone]}：${noteLabel}`}
+                          aria-pressed={note.tone === tone}
+                        >
+                          <span className={styles.noteColorDot} aria-hidden="true" />
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      className={styles.deleteNoteButton}
+                      type="button"
+                      onClick={() => deleteNote(note.id)}
+                      aria-label={`删除便签：${noteLabel}`}
+                    >
+                      删除
+                    </button>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-        </section>
-      ))}
+          </section>
+        );
+      })}
+      <button className={styles.addNoteButton} type="button" onClick={createBlankNote} aria-label="添加便签">
+        +
+      </button>
     </>
   );
 }
