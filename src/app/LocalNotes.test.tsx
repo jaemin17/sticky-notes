@@ -12,7 +12,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
     expect(screen.queryByRole("button", { name: "贴上去" })).not.toBeInTheDocument();
     await user.type(screen.getByLabelText("编辑便签"), "只给自己看的想法");
     await user.tab();
@@ -25,7 +25,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "回车贴上去{Enter}");
 
     expect(screen.getByText("回车贴上去")).toBeInTheDocument();
@@ -36,7 +36,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "第一行{Shift>}{Enter}{/Shift}第二行");
 
     expect(screen.queryByText("第一行")).not.toBeInTheDocument();
@@ -48,9 +48,8 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.queryByLabelText("便签颜色")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
-    await user.click(screen.getByRole("button", { name: "更多操作：新便签" }));
-    await user.click(screen.getByRole("button", { name: "改为蓝色：新便签" }));
+    await user.click(screen.getByRole("button", { name: "选择蓝色" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "蓝色的新便签");
     await user.tab();
 
@@ -61,9 +60,8 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
-    await user.click(screen.getByRole("button", { name: "更多操作：新便签" }));
-    await user.click(screen.getByRole("button", { name: "改为蓝色：新便签" }));
+    await user.click(screen.getByRole("button", { name: "选择蓝色" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
 
     expect(screen.getByRole("article", { name: "新便签" }).className).toContain("blue");
     expect(screen.queryByText("颜色")).not.toBeInTheDocument();
@@ -73,7 +71,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "添加便签" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
     expect(screen.getByRole("article", { name: "新便签" })).toBeInTheDocument();
 
     await user.tab();

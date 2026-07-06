@@ -55,6 +55,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [hasLoadedStoredNotes, setHasLoadedStoredNotes] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
+  const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -82,7 +83,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     const nextNote: LocalNote = {
       id: crypto.randomUUID(),
       text: "",
-      tone: "yellow",
+      tone: newNoteTone,
     };
 
     setNotes((currentNotes) => [...currentNotes, nextNote]);
@@ -202,9 +203,25 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           </section>
         );
       })}
-      <button className={styles.addNoteButton} type="button" onClick={createBlankNote} aria-label="添加便签">
-        +
-      </button>
+      <div className={styles.noteToolbar} role="toolbar" aria-label="新建便签工具栏">
+        <div className={styles.toolbarColorMenu} aria-label="选择新便签颜色">
+          {noteTones.map((tone) => (
+            <button
+              key={tone}
+              className={`${styles.toolbarColorButton} ${styles[tone]}`}
+              type="button"
+              onClick={() => setNewNoteTone(tone)}
+              aria-label={`选择${toneLabels[tone]}`}
+              aria-pressed={newNoteTone === tone}
+            >
+              <span className={styles.noteColorDot} aria-hidden="true" />
+            </button>
+          ))}
+        </div>
+        <button className={styles.addNoteButton} type="button" onClick={createBlankNote}>
+          写一张
+        </button>
+      </div>
     </>
   );
 }

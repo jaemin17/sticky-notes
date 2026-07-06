@@ -2,7 +2,7 @@
   display: grid;
   place-items: center;
   min-height: 100vh;
-  padding: 48px 24px;
+  padding: 48px 24px 112px;
   font-family: var(--font-geist-sans);
   background-color: var(--bg);
   background-image:
@@ -241,29 +241,80 @@
   background: color-mix(in oklab, var(--note-accent) 44%, white);
 }
 
+.noteToolbar {
+  position: fixed;
+  left: 50%;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(17, 18, 23, 0.09);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 14px 32px rgba(17, 18, 23, 0.14);
+  transform: translateX(-50%);
+  backdrop-filter: blur(14px);
+}
+
+.toolbarColorMenu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 14px;
+  border-right: 1px solid rgba(17, 18, 23, 0.08);
+}
+
+.toolbarColorButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.toolbarColorButton .noteColorDot {
+  width: 16px;
+  height: 16px;
+}
+
+.toolbarColorButton:hover,
+.toolbarColorButton[aria-pressed="true"] {
+  border-color: color-mix(in oklab, var(--note-color) 48%, rgba(17, 18, 23, 0.18));
+  background: color-mix(in oklab, var(--note-accent) 30%, white);
+  transform: translateY(-1px);
+}
+
 .addNoteButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  grid-column: 1 / -1;
-  justify-self: center;
+  min-width: 86px;
+  min-height: 40px;
+  padding: 0 18px;
   border: 0;
   border-radius: 999px;
   background: #111217;
   color: #ffffff;
   cursor: pointer;
   font: inherit;
-  font-size: 26px;
+  font-size: 15px;
+  font-weight: 750;
   line-height: 1;
-  box-shadow: 0 10px 18px rgba(17, 18, 23, 0.18);
   transition: background 160ms ease, transform 160ms ease;
 }
 
 .addNoteButton:hover {
   background: #2a2c33;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 @media (min-width: 1400px) {
