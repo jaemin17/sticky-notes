@@ -48,6 +48,7 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.queryByLabelText("便签颜色")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "蓝色的新便签");
@@ -60,11 +61,26 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
 
     expect(screen.getByRole("article", { name: "新便签" }).className).toContain("blue");
     expect(screen.queryByText("颜色")).not.toBeInTheDocument();
+  });
+
+  test("collapses unselected toolbar colors until the current color is opened", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "选择蓝色" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "选择蓝色" }));
+
+    expect(screen.getByRole("button", { name: "展开新便签颜色，当前蓝色" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "选择绿色" })).not.toBeInTheDocument();
   });
 
   test("removes a blank new note on blur", async () => {

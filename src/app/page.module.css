@@ -262,11 +262,12 @@
 .toolbarColorMenu {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 14px;
+  gap: 6px;
+  padding-right: 12px;
   border-right: 1px solid rgba(17, 18, 23, 0.08);
 }
 
+.toolbarCurrentColorButton,
 .toolbarColorButton {
   display: inline-flex;
   align-items: center;
@@ -281,11 +282,19 @@
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
+.toolbarCurrentColorButton {
+  border-color: color-mix(in oklab, var(--note-color) 48%, rgba(17, 18, 23, 0.18));
+  background: color-mix(in oklab, var(--note-accent) 30%, white);
+}
+
+.toolbarCurrentColorButton .noteColorDot,
 .toolbarColorButton .noteColorDot {
   width: 16px;
   height: 16px;
 }
 
+.toolbarCurrentColorButton:hover,
+.toolbarCurrentColorButton[aria-expanded="true"],
 .toolbarColorButton:hover,
 .toolbarColorButton[aria-pressed="true"] {
   border-color: color-mix(in oklab, var(--note-color) 48%, rgba(17, 18, 23, 0.18));

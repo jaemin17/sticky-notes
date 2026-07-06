@@ -56,6 +56,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
+  const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
@@ -115,6 +116,8 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     );
     setOpenMenuNoteId(null);
   }
+
+  const toolbarToneOptions = noteTones.filter((tone) => tone !== newNoteTone);
 
   return (
     <>
@@ -205,18 +208,30 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
       })}
       <div className={styles.noteToolbar} role="toolbar" aria-label="新建便签工具栏">
         <div className={styles.toolbarColorMenu} aria-label="选择新便签颜色">
-          {noteTones.map((tone) => (
+          <button
+            className={`${styles.toolbarCurrentColorButton} ${styles[newNoteTone]}`}
+            type="button"
+            onClick={() => setIsToolbarColorMenuOpen((isOpen) => !isOpen)}
+            aria-label={`展开新便签颜色，当前${toneLabels[newNoteTone]}`}
+            aria-expanded={isToolbarColorMenuOpen}
+          >
+            <span className={styles.noteColorDot} aria-hidden="true" />
+          </button>
+          {isToolbarColorMenuOpen ? toolbarToneOptions.map((tone) => (
             <button
               key={tone}
               className={`${styles.toolbarColorButton} ${styles[tone]}`}
               type="button"
-              onClick={() => setNewNoteTone(tone)}
+              onClick={() => {
+                setNewNoteTone(tone);
+                setIsToolbarColorMenuOpen(false);
+              }}
               aria-label={`选择${toneLabels[tone]}`}
               aria-pressed={newNoteTone === tone}
             >
               <span className={styles.noteColorDot} aria-hidden="true" />
             </button>
-          ))}
+          )) : null}
         </div>
         <button className={styles.addNoteButton} type="button" onClick={createBlankNote}>
           写一张
