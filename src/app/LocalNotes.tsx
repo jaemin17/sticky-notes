@@ -233,8 +233,11 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             </button>
           )) : null}
         </div>
-        <button className={styles.addNoteButton} type="button" onClick={createBlankNote}>
-          写一张
+        <button className={styles.addNoteButton} type="button" onClick={createBlankNote} aria-label="写一张">
+          <span className={styles.addNoteButtonIcon} aria-hidden="true">
+            ✦
+          </span>
+          <span>写一张</span>
         </button>
       </div>
     </>
