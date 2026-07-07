@@ -82,9 +82,12 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     const addButton = screen.getByRole("button", { name: "写一张" });
+    const colorMenuButton = screen.getByRole("button", { name: "展开新便签颜色，当前黄色" });
     expect(addButton.className).toContain("yellow");
+    expect(colorMenuButton).toHaveTextContent("...");
 
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(colorMenuButton);
+    expect(screen.getByLabelText("新便签颜色选项")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "选择粉色" }));
 
     expect(addButton.className).toContain("pink");

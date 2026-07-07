@@ -319,13 +319,45 @@
 }
 
 .toolbarColorMenu {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.toolbarCurrentColorButton,
+.toolbarColorPopover {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 16px);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(17, 18, 23, 0.09);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 24px rgba(17, 18, 23, 0.12);
+  backdrop-filter: blur(14px);
+  transform: translateX(-50%);
+}
+
+.toolbarColorPopover::after {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid rgba(17, 18, 23, 0.09);
+  border-bottom: 1px solid rgba(17, 18, 23, 0.09);
+  background: rgba(255, 255, 255, 0.94);
+  content: "";
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .toolbarColorButton {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -339,20 +371,53 @@
   transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
 }
 
-.toolbarCurrentColorButton .noteColorDot,
 .toolbarColorButton .noteColorDot {
   width: 18px;
   height: 18px;
   border-radius: 4px;
 }
 
-.toolbarCurrentColorButton:hover,
-.toolbarCurrentColorButton[aria-expanded="true"],
 .toolbarColorButton:hover,
 .toolbarColorButton[aria-pressed="true"] {
   border-color: color-mix(in oklab, var(--note-color) 48%, rgba(17, 18, 23, 0.18));
   background: color-mix(in oklab, var(--note-accent) 30%, white);
   transform: translateY(-1px);
+}
+
+.toolbarMenuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: color-mix(in oklab, var(--button-text, #2a2426) 78%, #111217);
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  line-height: 1;
+  opacity: 0.68;
+  padding: 0;
+  transition: opacity 160ms ease;
+}
+
+.toolbarMenuButton[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.toolbarMenuDots {
+  display: block;
+  width: 18px;
+  height: 6px;
+  color: currentColor;
+  font-size: 0;
+  line-height: 0;
+  background:
+    radial-gradient(circle at 3px 50%, currentColor 0 1.6px, transparent 1.7px),
+    radial-gradient(circle at 9px 50%, currentColor 0 1.6px, transparent 1.7px),
+    radial-gradient(circle at 15px 50%, currentColor 0 1.6px, transparent 1.7px);
 }
 
 .addNoteButton {

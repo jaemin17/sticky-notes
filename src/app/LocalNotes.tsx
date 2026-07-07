@@ -223,29 +223,33 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         </button>
         <div className={styles.toolbarColorMenu} aria-label="选择新便签颜色">
           <button
-            className={`${styles.toolbarCurrentColorButton} ${styles[newNoteTone]}`}
+            className={styles.toolbarMenuButton}
             type="button"
             onClick={() => setIsToolbarColorMenuOpen((isOpen) => !isOpen)}
             aria-label={`展开新便签颜色，当前${toneLabels[newNoteTone]}`}
             aria-expanded={isToolbarColorMenuOpen}
           >
-            <span className={styles.noteColorDot} aria-hidden="true" />
+            <span className={styles.toolbarMenuDots}>...</span>
           </button>
-          {isToolbarColorMenuOpen ? toolbarToneOptions.map((tone) => (
-            <button
-              key={tone}
-              className={`${styles.toolbarColorButton} ${styles[tone]}`}
-              type="button"
-              onClick={() => {
-                setNewNoteTone(tone);
-                setIsToolbarColorMenuOpen(false);
-              }}
-              aria-label={`选择${toneLabels[tone]}`}
-              aria-pressed={newNoteTone === tone}
-            >
-              <span className={styles.noteColorDot} aria-hidden="true" />
-            </button>
-          )) : null}
+          {isToolbarColorMenuOpen ? (
+            <div className={styles.toolbarColorPopover} aria-label="新便签颜色选项">
+              {toolbarToneOptions.map((tone) => (
+                <button
+                  key={tone}
+                  className={`${styles.toolbarColorButton} ${styles[tone]}`}
+                  type="button"
+                  onClick={() => {
+                    setNewNoteTone(tone);
+                    setIsToolbarColorMenuOpen(false);
+                  }}
+                  aria-label={`选择${toneLabels[tone]}`}
+                  aria-pressed={newNoteTone === tone}
+                >
+                  <span className={styles.noteColorDot} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </>
