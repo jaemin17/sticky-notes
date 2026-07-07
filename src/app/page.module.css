@@ -88,26 +88,85 @@
 .yellow {
   --note-accent: #ffe176;
   --note-color: #d35a16;
+  --button-glow: rgba(255, 225, 118, 0.34);
+  --button-gradient-start: rgba(255, 250, 221, 0.96);
+  --button-gradient-end: rgba(255, 235, 153, 0.92);
+  --button-border: rgba(211, 90, 22, 0.16);
+  --button-border-hover: rgba(211, 90, 22, 0.24);
+  --button-text: #3b2d16;
+  --button-shadow-soft: rgba(185, 170, 120, 0.2);
+  --button-shadow-bottom: rgba(231, 201, 111, 0.5);
+  --button-shadow-edge: rgba(218, 174, 70, 0.2);
 }
 
 .green {
   --note-accent: #9be7b3;
   --note-color: #16884b;
+  --button-glow: rgba(155, 231, 179, 0.34);
+  --button-gradient-start: rgba(240, 255, 245, 0.96);
+  --button-gradient-end: rgba(210, 245, 221, 0.92);
+  --button-border: rgba(22, 136, 75, 0.16);
+  --button-border-hover: rgba(22, 136, 75, 0.24);
+  --button-text: #20362a;
+  --button-shadow-soft: rgba(170, 202, 184, 0.2);
+  --button-shadow-bottom: rgba(187, 226, 199, 0.5);
+  --button-shadow-edge: rgba(138, 190, 154, 0.2);
 }
 
 .blue {
   --note-accent: #9fd5ff;
   --note-color: #1f66d1;
+  --button-glow: rgba(159, 213, 255, 0.34);
+  --button-gradient-start: rgba(241, 249, 255, 0.96);
+  --button-gradient-end: rgba(211, 234, 252, 0.92);
+  --button-border: rgba(31, 102, 209, 0.16);
+  --button-border-hover: rgba(31, 102, 209, 0.24);
+  --button-text: #243241;
+  --button-shadow-soft: rgba(170, 190, 213, 0.2);
+  --button-shadow-bottom: rgba(196, 220, 239, 0.5);
+  --button-shadow-edge: rgba(145, 185, 220, 0.2);
 }
 
 .purple {
   --note-accent: #d9b8ff;
   --note-color: #7c48d8;
+  --button-glow: rgba(217, 184, 255, 0.34);
+  --button-gradient-start: rgba(250, 244, 255, 0.96);
+  --button-gradient-end: rgba(230, 213, 248, 0.92);
+  --button-border: rgba(124, 72, 216, 0.16);
+  --button-border-hover: rgba(124, 72, 216, 0.24);
+  --button-text: #33283f;
+  --button-shadow-soft: rgba(190, 178, 213, 0.2);
+  --button-shadow-bottom: rgba(218, 202, 235, 0.5);
+  --button-shadow-edge: rgba(181, 154, 218, 0.2);
 }
 
 .orange {
   --note-accent: #ffc56f;
   --note-color: #ce5a13;
+  --button-glow: rgba(255, 197, 111, 0.34);
+  --button-gradient-start: rgba(255, 248, 235, 0.96);
+  --button-gradient-end: rgba(250, 224, 185, 0.92);
+  --button-border: rgba(206, 90, 19, 0.16);
+  --button-border-hover: rgba(206, 90, 19, 0.24);
+  --button-text: #3f2a19;
+  --button-shadow-soft: rgba(205, 180, 140, 0.2);
+  --button-shadow-bottom: rgba(235, 199, 149, 0.5);
+  --button-shadow-edge: rgba(215, 158, 92, 0.2);
+}
+
+.pink {
+  --note-accent: #ffd0df;
+  --note-color: #c04472;
+  --button-glow: rgba(244, 200, 200, 0.34);
+  --button-gradient-start: rgba(255, 246, 248, 0.96);
+  --button-gradient-end: rgba(247, 223, 226, 0.92);
+  --button-border: rgba(152, 76, 84, 0.16);
+  --button-border-hover: rgba(152, 76, 84, 0.24);
+  --button-text: #2a2426;
+  --button-shadow-soft: rgba(185, 186, 213, 0.2);
+  --button-shadow-bottom: rgba(229, 208, 210, 0.5);
+  --button-shadow-edge: rgba(219, 190, 192, 0.2);
 }
 
 .note:hover {
@@ -304,32 +363,32 @@
   height: 36px;
   min-width: 84px;
   padding: 0.1rem 1rem;
-  border: 1px solid rgba(152, 76, 84, 0.16);
+  border: 1px solid var(--button-border, rgba(152, 76, 84, 0.16));
   border-radius: 6px;
   background:
-    radial-gradient(56px 20px at 28% 24%, rgba(244, 200, 200, 0.34) 0, rgba(244, 200, 200, 0) 100%),
-    linear-gradient(180deg, rgba(255, 246, 248, 0.96), rgba(247, 223, 226, 0.92));
-  color: #2a2426;
+    radial-gradient(56px 20px at 28% 24%, var(--button-glow, rgba(244, 200, 200, 0.34)) 0, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(180deg, var(--button-gradient-start, rgba(255, 246, 248, 0.96)), var(--button-gradient-end, rgba(247, 223, 226, 0.92)));
+  color: var(--button-text, #2a2426);
   cursor: pointer;
   font: inherit;
   font-size: 15px;
   font-weight: 750;
   line-height: 1;
   box-shadow:
-    rgba(185, 186, 213, 0.2) 0 2px 10px,
-    rgba(229, 208, 210, 0.5) 0 -4px 6px inset,
-    rgba(219, 190, 192, 0.2) 0 0 2px 2px inset,
+    var(--button-shadow-soft, rgba(185, 186, 213, 0.2)) 0 2px 10px,
+    var(--button-shadow-bottom, rgba(229, 208, 210, 0.5)) 0 -4px 6px inset,
+    var(--button-shadow-edge, rgba(219, 190, 192, 0.2)) 0 0 2px 2px inset,
     rgba(255, 255, 255, 0.5) 0 2px 3px 3px inset;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
 .addNoteButton:hover {
-  border-color: rgba(152, 76, 84, 0.24);
+  border-color: var(--button-border-hover, rgba(152, 76, 84, 0.24));
   box-shadow:
-    rgba(185, 186, 213, 0.24) 0 3px 12px,
-    rgba(229, 208, 210, 0.56) 0 -4px 6px inset,
-    rgba(219, 190, 192, 0.24) 0 0 2px 2px inset,
-    rgba(255, 255, 255, 0.58) 0 2px 3px 3px inset;
+    var(--button-shadow-soft, rgba(185, 186, 213, 0.2)) 0 3px 12px,
+    var(--button-shadow-bottom, rgba(229, 208, 210, 0.5)) 0 -4px 6px inset,
+    var(--button-shadow-edge, rgba(219, 190, 192, 0.2)) 0 0 2px 2px inset,
+    rgba(255, 255, 255, 0.62) 0 2px 3px 3px inset;
   transform: translateY(-1px);
 }
 
@@ -343,7 +402,7 @@
   display: inline-flex;
   width: 15px;
   height: 15px;
-  color: #4c4246;
+  color: currentColor;
 }
 
 .addNoteButtonLineIcon svg {

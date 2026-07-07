@@ -77,6 +77,38 @@ describe("LocalNotes", () => {
     expect(screen.queryByText("颜色")).not.toBeInTheDocument();
   });
 
+  test("updates the add button tone when selecting a note color", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    const addButton = screen.getByRole("button", { name: "写一张" });
+    expect(addButton.className).toContain("yellow");
+
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "选择粉色" }));
+
+    expect(addButton.className).toContain("pink");
+
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前粉色" }));
+    await user.click(screen.getByRole("button", { name: "选择蓝色" }));
+
+    expect(addButton.className).toContain("blue");
+  });
+
+  test("adds a pink note from the toolbar color picker", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "选择粉色" }));
+    await user.click(screen.getByRole("button", { name: "写一张" }));
+    await user.type(screen.getByLabelText("编辑便签"), "粉色的新便签");
+    await user.tab();
+
+    expect(screen.getByRole("article", { name: "我的便签" }).className).toContain("pink");
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"tone":"pink"');
+  });
+
   test("collapses unselected toolbar colors until the current color is opened", async () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
