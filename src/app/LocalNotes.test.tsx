@@ -21,6 +21,14 @@ describe("LocalNotes", () => {
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain("只给自己看的想法");
   });
 
+  test("shows only one add note button in the toolbar", () => {
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(screen.getAllByRole("button", { name: "写一张" })).toHaveLength(1);
+    expect(screen.queryByRole("button", { name: "旧样式写一张对比" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "综合样式写一张对比" })).not.toBeInTheDocument();
+  });
+
   test("submits a note with Enter", async () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
