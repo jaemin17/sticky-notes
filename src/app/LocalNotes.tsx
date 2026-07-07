@@ -2,54 +2,18 @@
 
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
-
-type NoteTone = "yellow" | "green" | "blue" | "purple" | "orange" | "pink";
-
-type LocalNote = {
-  id: string;
-  text: string;
-  tone: NoteTone;
-};
-
-const storageKey = "sticky-notes.local-notes";
-const noteTones: NoteTone[] = ["yellow", "green", "blue", "purple", "orange", "pink"];
-const toneLabels: Record<NoteTone, string> = {
-  yellow: "黄色",
-  green: "绿色",
-  blue: "蓝色",
-  purple: "紫色",
-  orange: "橙色",
-  pink: "粉色",
-};
-
-function noteWidthClassName(text: string) {
-  if (text.length >= 40) return styles.noteWide;
-  return "";
-}
-
-function readStoredNotes(): LocalNote[] {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const rawNotes = window.localStorage.getItem(storageKey);
-    if (!rawNotes) return [];
-
-    const parsedNotes = JSON.parse(rawNotes);
-    if (!Array.isArray(parsedNotes)) return [];
-
-    return parsedNotes.filter((note): note is LocalNote => {
-      return (
-        typeof note === "object" &&
-        note !== null &&
-        typeof note.id === "string" &&
-        typeof note.text === "string" &&
-        noteTones.includes(note.tone)
-      );
-    });
-  } catch {
-    return [];
-  }
-}
+import { computeCanvasSize, findNewNotePlacement } from "./notePlacement";
+import { readStoredNotes, writeStoredNotes } from "./noteStorage";
+import {
+  getNoteColSpan,
+  GRID,
+  isWideNote,
+  NOTE_TONES,
+  TONE_LABELS,
+  type LocalNote,
+  type NoteTone,
+} from "./noteTypes";
+import { useNoteDrag } from "./useNoteDrag";
 
 export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [notes, setNotes] = useState<LocalNote[]>([]);
@@ -58,7 +22,21 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
+  const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  const boardRef = useRef<HTMLDivElement | null>(null);
+
+  const moveNote = (noteId: string, col: number, row: number) => {
+    setNotes((currentNotes) =>
+      currentNotes.map((note) => (note.id === noteId ? { ...note, col, row } : note)),
+    );
+  };
+
+  const { draggingNoteId, startDrag, getNotePosition } = useNoteDrag({
+    boardRef,
+    disabled: Boolean(editingNoteId),
+    onMove: moveNote,
+  });
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -69,8 +47,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
   useEffect(() => {
     if (!hasLoadedStoredNotes) return;
-
-    window.localStorage.setItem(storageKey, JSON.stringify(notes.filter((note) => note.text.trim())));
+    writeStoredNotes(notes);
   }, [hasLoadedStoredNotes, notes]);
 
   useEffect(() => {
@@ -81,11 +58,24 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     });
   }, [editingNoteId]);
 
+  useEffect(() => {
+    function updateCanvasSize() {
+      setCanvasSize(computeCanvasSize(notes, window.innerWidth, window.innerHeight));
+    }
+
+    updateCanvasSize();
+    window.addEventListener("resize", updateCanvasSize);
+    return () => window.removeEventListener("resize", updateCanvasSize);
+  }, [notes]);
+
   function createBlankNote() {
+    const { col, row } = findNewNotePlacement(notes);
     const nextNote: LocalNote = {
       id: crypto.randomUUID(),
       text: "",
       tone: newNoteTone,
+      col,
+      row,
     };
 
     setNotes((currentNotes) => [...currentNotes, nextNote]);
@@ -118,95 +108,134 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setOpenMenuNoteId(null);
   }
 
-  const toolbarToneOptions = noteTones.filter((tone) => tone !== newNoteTone);
+  const toolbarToneOptions = NOTE_TONES.filter((tone) => tone !== newNoteTone);
 
   return (
     <>
-      {notes.map((note, noteIndex) => {
-        const noteLabel = note.text.trim() || "新便签";
+      <div
+        ref={boardRef}
+        className={styles.canvas}
+        style={{
+          width: canvasSize.cols * GRID,
+          height: canvasSize.rows * GRID,
+        }}
+        aria-label="便签画布"
+      >
+        {notes.map((note, noteIndex) => {
+          const noteLabel = note.text.trim() || "新便签";
+          const { col, row } = getNotePosition(note);
+          const isEditing = editingNoteId === note.id;
+          const isDragging = draggingNoteId === note.id;
 
-        return (
-          <section
+          return (
+            <section
               key={note.id}
-              className={[styles.note, styles[note.tone], noteWidthClassName(note.text)].filter(Boolean).join(" ")}
+              className={[
+                styles.note,
+                styles[note.tone],
+                isWideNote(note) ? styles.noteWide : "",
+                isDragging ? styles.noteDragging : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              style={{
+                left: col * GRID,
+                top: row * GRID,
+                width: getNoteColSpan(note) * GRID,
+                zIndex: isDragging ? 100 : undefined,
+              }}
               aria-label={note.text.trim() ? "我的便签" : "新便签"}
               role="article"
             >
-              <span className={styles.noteIndex}>{String(initialIndex + noteIndex + 1).padStart(3, "0")}</span>
-              {editingNoteId === note.id ? (
-                <textarea
-                  ref={editingTextAreaRef}
-                  className={styles.composeInput}
-                  value={note.text}
-                  onChange={(event) =>
-                    setNotes((currentNotes) =>
-                      currentNotes.map((currentNote) =>
-                        currentNote.id === note.id ? { ...currentNote, text: event.target.value } : currentNote,
-                      ),
-                    )
-                  }
-                  onKeyDown={(event) => handleTextKeyDown(event, note.id)}
-                  onBlur={(event) => {
-                    if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
-                    finishEditing(note.id);
-                  }}
-                  aria-label="编辑便签"
-                  placeholder="写下一条只给自己看的便签..."
-                  rows={5}
-                />
-              ) : (
-                <button
-                  className={styles.noteTextButton}
-                  type="button"
-                  onClick={() => {
-                    setEditingNoteId(note.id);
-                    setOpenMenuNoteId(null);
-                  }}
-                  aria-label={`编辑便签：${note.text}`}
+              <div className={styles.noteHeader}>
+                <div
+                  className={styles.noteDragHandle}
+                  onPointerDown={(event) => startDrag(event, note)}
+                  aria-label={`拖动便签：${noteLabel}`}
+                  aria-grabbed={isDragging}
                 >
-                  <span className={styles.noteText}>{note.text}</span>
-                </button>
-              )}
-              <div className={styles.noteActions} onMouseDown={(event) => event.preventDefault()}>
-                <button
-                  className={styles.noteMenuButton}
-                  type="button"
-                  onClick={() => setOpenMenuNoteId((currentId) => (currentId === note.id ? null : note.id))}
-                  aria-label={`更多操作：${noteLabel}`}
-                  aria-expanded={openMenuNoteId === note.id}
-                >
-                  ...
-                </button>
-                {openMenuNoteId === note.id ? (
-                  <div className={styles.noteActionMenu}>
-                    <div className={styles.noteColorMenu} aria-label={`修改颜色：${noteLabel}`}>
-                      {noteTones.map((tone) => (
-                        <button
-                          key={tone}
-                          className={`${styles.noteColorButton} ${styles[tone]}`}
-                          type="button"
-                          onClick={() => updateNoteTone(note.id, tone)}
-                          aria-label={`改为${toneLabels[tone]}：${noteLabel}`}
-                          aria-pressed={note.tone === tone}
-                        >
-                          <span className={styles.noteColorDot} aria-hidden="true" />
-                        </button>
-                      ))}
+                  <span className={styles.noteIndex}>{String(initialIndex + noteIndex + 1).padStart(3, "0")}</span>
+                </div>
+                <div className={styles.noteActions} onMouseDown={(event) => event.preventDefault()}>
+                  <button
+                    className={styles.noteMenuButton}
+                    type="button"
+                    onClick={() => setOpenMenuNoteId((currentId) => (currentId === note.id ? null : note.id))}
+                    aria-label={`更多操作：${noteLabel}`}
+                    aria-expanded={openMenuNoteId === note.id}
+                  >
+                    ...
+                  </button>
+                  {openMenuNoteId === note.id ? (
+                    <div className={styles.noteActionMenu}>
+                      <div className={styles.noteColorMenu} aria-label={`修改颜色：${noteLabel}`}>
+                        {NOTE_TONES.map((tone) => (
+                          <button
+                            key={tone}
+                            className={`${styles.noteColorButton} ${styles[tone]}`}
+                            type="button"
+                            onClick={() => updateNoteTone(note.id, tone)}
+                            aria-label={`改为${TONE_LABELS[tone]}：${noteLabel}`}
+                            aria-pressed={note.tone === tone}
+                          >
+                            <span className={styles.noteColorDot} aria-hidden="true" />
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        className={styles.deleteNoteButton}
+                        type="button"
+                        onClick={() => deleteNote(note.id)}
+                        aria-label={`删除便签：${noteLabel}`}
+                      >
+                        删除
+                      </button>
                     </div>
-                    <button
-                      className={styles.deleteNoteButton}
-                      type="button"
-                      onClick={() => deleteNote(note.id)}
-                      aria-label={`删除便签：${noteLabel}`}
-                    >
-                      删除
-                    </button>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </div>
-          </section>
-        );
-      })}
+
+              <div className={styles.noteBody}>
+                {isEditing ? (
+                  <textarea
+                    ref={editingNoteId === note.id ? editingTextAreaRef : null}
+                    className={styles.composeInput}
+                    value={note.text}
+                    onChange={(event) =>
+                      setNotes((currentNotes) =>
+                        currentNotes.map((currentNote) =>
+                          currentNote.id === note.id ? { ...currentNote, text: event.target.value } : currentNote,
+                        ),
+                      )
+                    }
+                    onKeyDown={(event) => handleTextKeyDown(event, note.id)}
+                    onBlur={(event) => {
+                      if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
+                      finishEditing(note.id);
+                    }}
+                    aria-label="编辑便签"
+                    placeholder="写下一条只给自己看的便签..."
+                    rows={5}
+                  />
+                ) : (
+                  <button
+                    className={styles.noteTextButton}
+                    type="button"
+                    onClick={() => {
+                      setEditingNoteId(note.id);
+                      setOpenMenuNoteId(null);
+                    }}
+                    aria-label={`编辑便签：${note.text}`}
+                  >
+                    <span className={styles.noteText}>{note.text}</span>
+                  </button>
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+
       <div className={styles.noteToolbar} role="toolbar" aria-label="新建便签工具栏">
         <button
           className={`${styles.addNoteButton} ${styles[newNoteTone]}`}
@@ -226,7 +255,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             className={styles.toolbarMenuButton}
             type="button"
             onClick={() => setIsToolbarColorMenuOpen((isOpen) => !isOpen)}
-            aria-label={`展开新便签颜色，当前${toneLabels[newNoteTone]}`}
+            aria-label={`展开新便签颜色，当前${TONE_LABELS[newNoteTone]}`}
             aria-expanded={isToolbarColorMenuOpen}
           >
             <span className={styles.toolbarMenuDots}>...</span>
@@ -242,7 +271,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                     setNewNoteTone(tone);
                     setIsToolbarColorMenuOpen(false);
                   }}
-                  aria-label={`选择${toneLabels[tone]}`}
+                  aria-label={`选择${TONE_LABELS[tone]}`}
                   aria-pressed={newNoteTone === tone}
                 >
                   <span className={styles.noteColorDot} aria-hidden="true" />

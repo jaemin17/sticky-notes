@@ -1,6 +1,4 @@
 .page {
-  display: grid;
-  place-items: center;
   min-height: 100vh;
   padding: 48px 24px 112px;
   font-family: var(--font-geist-sans);
@@ -13,27 +11,26 @@
 }
 
 .board {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 220px));
-  justify-content: center;
-  gap: 14px;
+  position: relative;
   width: 100%;
-  max-width: 880px;
   margin: 0 auto;
   padding: 0;
+}
+
+.canvas {
+  position: relative;
+  margin: 0 auto;
 }
 
 .note {
   --note-accent: #ffe176;
   --note-color: #d35a16;
-  position: relative;
+  position: absolute;
   display: flex;
-  width: 100%;
-  min-height: 156px;
+  min-height: calc(5 * 34px);
   flex-direction: column;
-  justify-content: flex-start;
-  gap: 18px;
-  padding: 18px;
+  gap: 0;
+  padding: 0;
   border: 1px solid rgba(17, 18, 23, 0.12);
   border-radius: 2px;
   background: var(--note-accent);
@@ -42,7 +39,45 @@
 }
 
 .noteWide {
-  grid-column: span 2;
+  /* width set inline from grid span */
+}
+
+.noteDragging {
+  cursor: grabbing;
+  border-color: rgba(17, 18, 23, 0.22);
+  box-shadow: 0 22px 36px rgba(17, 18, 23, 0.18);
+  transform: rotate(-0.6deg);
+}
+
+.noteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 34px;
+  padding: 0 10px 0 0;
+}
+
+.noteDragHandle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  min-height: 34px;
+  padding: 8px 10px 8px 18px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.noteDragHandle:active {
+  cursor: grabbing;
+}
+
+.noteBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 18px 18px;
 }
 
 .composeNote {
@@ -172,8 +207,11 @@
 .note:hover {
   border-color: rgba(17, 18, 23, 0.18);
   box-shadow: 0 18px 32px rgba(17, 18, 23, 0.16);
-  transform: translateY(-4px) scale(1.08);
   z-index: 4;
+}
+
+.noteDragging:hover {
+  transform: rotate(-0.6deg);
 }
 
 .noteIndex {
@@ -207,9 +245,10 @@
 }
 
 .noteActions {
-  position: absolute;
-  top: 8px;
-  right: 10px;
+  position: relative;
+  top: auto;
+  right: auto;
+  flex-shrink: 0;
 }
 
 .noteMenuButton {
@@ -491,17 +530,8 @@
 }
 
 @media (max-width: 760px) {
-  .board {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 420px;
-  }
-
   .note {
-    min-height: 168px;
-  }
-
-  .noteWide {
-    grid-column: 1 / -1;
+    min-height: calc(5 * 34px);
   }
 }
 
@@ -512,8 +542,9 @@
 }
 
 @media (max-width: 420px) {
-  .board {
-    grid-template-columns: 1fr;
+  .page {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 

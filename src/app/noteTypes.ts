@@ -1,0 +1,49 @@
+export const GRID = 34;
+
+/** Default note width in grid columns (~204px) */
+export const NOTE_COL_SPAN = 6;
+
+/** Wide note width in grid columns (~408px) */
+export const NOTE_WIDE_COL_SPAN = 12;
+
+/** Default note height in grid rows (~170px) */
+export const NOTE_ROW_SPAN = 5;
+
+/** Extra grid padding around the outermost notes */
+export const CANVAS_PADDING_COLS = 10;
+export const CANVAS_PADDING_ROWS = 8;
+
+export type NoteTone = "yellow" | "green" | "blue" | "purple" | "orange" | "pink";
+
+export type LocalNote = {
+  id: string;
+  text: string;
+  tone: NoteTone;
+  col: number;
+  row: number;
+};
+
+export const NOTE_TONES: NoteTone[] = ["yellow", "green", "blue", "purple", "orange", "pink"];
+
+export const TONE_LABELS: Record<NoteTone, string> = {
+  yellow: "黄色",
+  green: "绿色",
+  blue: "蓝色",
+  purple: "紫色",
+  orange: "橙色",
+  pink: "粉色",
+};
+
+export const STORAGE_KEY = "sticky-notes.local-notes";
+
+export function isNoteTone(value: unknown): value is NoteTone {
+  return typeof value === "string" && NOTE_TONES.includes(value as NoteTone);
+}
+
+export function getNoteColSpan(note: Pick<LocalNote, "text">): number {
+  return note.text.length >= 40 ? NOTE_WIDE_COL_SPAN : NOTE_COL_SPAN;
+}
+
+export function isWideNote(note: Pick<LocalNote, "text">): boolean {
+  return getNoteColSpan(note) === NOTE_WIDE_COL_SPAN;
+}

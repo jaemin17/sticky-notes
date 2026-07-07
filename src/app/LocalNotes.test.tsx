@@ -1,6 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
 
 describe("LocalNotes", () => {
@@ -160,12 +160,102 @@ describe("LocalNotes", () => {
   test("loads stored notes from localStorage", async () => {
     window.localStorage.setItem(
       "sticky-notes.local-notes",
-      JSON.stringify([{ id: "note-1", text: "刷新后也还在", tone: "green" }]),
+      JSON.stringify([{ id: "note-1", text: "刷新后也还在", tone: "green", col: 3, row: 2 }]),
     );
 
     render(<LocalNotes initialIndex={0} />);
 
     expect(await screen.findByText("刷新后也还在")).toBeInTheDocument();
+  });
+
+  test("migrates legacy stored notes without coordinates", async () => {
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "旧数据", tone: "yellow" }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(await screen.findByText("旧数据")).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"col":');
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"row":');
+  });
+
+  test("persists note coordinates after editing", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    await user.click(screen.getByRole("button", { name: "写一张" }));
+    await user.type(screen.getByLabelText("编辑便签"), "带坐标的便签");
+    await user.tab();
+
+    const stored = window.localStorage.getItem("sticky-notes.local-notes");
+    expect(stored).toContain('"col":');
+    expect(stored).toContain('"row":');
+    expect(stored).toContain("带坐标的便签");
+  });
+
+  test("moves a note when dragging the header handle", async () => {
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "拖我", tone: "yellow", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const note = (await screen.findByText("拖我")).closest("section");
+    expect(note).toBeTruthy();
+
+    const canvas = note?.parentElement;
+    expect(canvas).toBeTruthy();
+
+    const canvasRectSpy = vi.spyOn(canvas as HTMLElement, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      width: 1200,
+      height: 800,
+      right: 1200,
+      bottom: 800,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    const dragHandle = screen.getByLabelText("拖动便签：拖我");
+    Object.defineProperty(dragHandle, "setPointerCapture", {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(dragHandle, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 110,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      clientX: 220,
+      clientY: 180,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      clientX: 220,
+      clientY: 180,
+      button: 0,
+      buttons: 0,
+      pointerType: "mouse",
+    });
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"col":5');
+    });
+    expect(note?.style.left).toBe("170px");
+    canvasRectSpy.mockRestore();
   });
 
   test("uses a wider card for long note text", async () => {
