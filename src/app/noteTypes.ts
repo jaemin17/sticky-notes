@@ -15,13 +15,24 @@ export const CANVAS_PADDING_ROWS = 8;
 
 export type NoteTone = "yellow" | "green" | "blue" | "purple" | "orange" | "pink";
 
+export const NOTE_LABEL_MAX_LENGTH = 12;
+
 export type LocalNote = {
   id: string;
+  label: string;
   text: string;
   tone: NoteTone;
   col: number;
   row: number;
 };
+
+export function defaultNoteLabel(index: number, initialIndex = 0): string {
+  return String(initialIndex + index + 1).padStart(3, "0");
+}
+
+export function sanitizeNoteLabel(value: string): string {
+  return value.trim().slice(0, NOTE_LABEL_MAX_LENGTH);
+}
 
 export const NOTE_TONES: NoteTone[] = ["yellow", "green", "blue", "purple", "orange", "pink"];
 

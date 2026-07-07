@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
+import styles from "./page.module.css";
 
 describe("LocalNotes", () => {
   beforeEach(() => {
@@ -73,7 +74,7 @@ describe("LocalNotes", () => {
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
 
-    expect(screen.getByRole("article", { name: "新便签" }).className).toContain("blue");
+    expect(screen.getByRole("article", { name: /新便签/ }).className).toContain("blue");
     expect(screen.queryByText("颜色")).not.toBeInTheDocument();
   });
 
@@ -108,7 +109,7 @@ describe("LocalNotes", () => {
     await user.type(screen.getByLabelText("编辑便签"), "粉色的新便签");
     await user.tab();
 
-    expect(screen.getByRole("article", { name: "我的便签" }).className).toContain("pink");
+    expect(screen.getByRole("article", { name: /我的便签/ }).className).toContain("pink");
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"tone":"pink"');
   });
 
@@ -131,11 +132,11 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     await user.click(screen.getByRole("button", { name: "写一张" }));
-    expect(screen.getByRole("article", { name: "新便签" })).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: /新便签/ })).toBeInTheDocument();
 
     await user.tab();
 
-    expect(screen.queryByRole("article", { name: "新便签" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("article", { name: /新便签/ })).not.toBeInTheDocument();
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toBe("[]");
   });
 
@@ -160,7 +161,9 @@ describe("LocalNotes", () => {
   test("loads stored notes from localStorage", async () => {
     window.localStorage.setItem(
       "sticky-notes.local-notes",
-      JSON.stringify([{ id: "note-1", text: "刷新后也还在", tone: "green", col: 3, row: 2 }]),
+      JSON.stringify([
+        { id: "note-1", text: "刷新后也还在", tone: "green", label: "003", col: 3, row: 2 },
+      ]),
     );
 
     render(<LocalNotes initialIndex={0} />);
@@ -179,6 +182,26 @@ describe("LocalNotes", () => {
     expect(await screen.findByText("旧数据")).toBeInTheDocument();
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"col":');
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"row":');
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"label":"001"');
+  });
+
+  test("edits a note label with a single click", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "内容", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+
+    await screen.findByText("内容");
+    await user.click(screen.getByRole("button", { name: "编辑便签编号：001" }));
+    const labelInput = screen.getByLabelText("编辑便签编号");
+    await user.clear(labelInput);
+    await user.type(labelInput, "A1{Enter}");
+
+    expect(screen.getByRole("button", { name: "编辑便签编号：A1" })).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"label":"A1"');
   });
 
   test("persists note coordinates after editing", async () => {
@@ -198,7 +221,7 @@ describe("LocalNotes", () => {
   test("moves a note when dragging the header handle", async () => {
     window.localStorage.setItem(
       "sticky-notes.local-notes",
-      JSON.stringify([{ id: "note-1", text: "拖我", tone: "yellow", col: 2, row: 2 }]),
+      JSON.stringify([{ id: "note-1", text: "拖我", tone: "yellow", label: "001", col: 2, row: 2 }]),
     );
 
     render(<LocalNotes initialIndex={0} />);
@@ -220,13 +243,12 @@ describe("LocalNotes", () => {
       toJSON: () => ({}),
     } as DOMRect);
 
-    const dragHandle = screen.getByLabelText("拖动便签：拖我");
-    Object.defineProperty(dragHandle, "setPointerCapture", {
+    Object.defineProperty(note as HTMLElement, "setPointerCapture", {
       configurable: true,
       value: vi.fn(),
     });
 
-    fireEvent.pointerDown(dragHandle, {
+    fireEvent.pointerDown(note as HTMLElement, {
       pointerId: 1,
       clientX: 120,
       clientY: 110,
@@ -255,6 +277,61 @@ describe("LocalNotes", () => {
       expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"col":5');
     });
     expect(note?.style.left).toBe("170px");
+    canvasRectSpy.mockRestore();
+  });
+
+  test("moves a note when dragging empty body space", async () => {
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "短", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const note = (await screen.findByText("短")).closest("section");
+    const noteBody = note?.querySelector(`.${styles.noteBody}`);
+
+    expect(note).toBeTruthy();
+    expect(noteBody).toBeTruthy();
+
+    const canvas = note?.parentElement;
+    const canvasRectSpy = vi.spyOn(canvas as HTMLElement, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      width: 1200,
+      height: 800,
+      right: 1200,
+      bottom: 800,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    Object.defineProperty(note as HTMLElement, "setPointerCapture", {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(noteBody as HTMLElement, {
+      pointerId: 1,
+      clientX: 130,
+      clientY: 160,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      clientX: 230,
+      clientY: 210,
+      button: 0,
+      buttons: 0,
+      pointerType: "mouse",
+    });
+
+    await waitFor(() => {
+      expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain('"col":2,"row":2');
+    });
+
     canvasRectSpy.mockRestore();
   });
 

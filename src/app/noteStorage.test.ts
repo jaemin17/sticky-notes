@@ -9,15 +9,23 @@ describe("noteStorage", () => {
     ]);
 
     expect(migrated).toHaveLength(2);
-    expect(migrated[0]).toMatchObject({ col: 0, row: 0 });
-    expect(migrated[1]).toMatchObject({ col: 7, row: 0 });
+    expect(migrated[0]).toMatchObject({ col: 0, row: 0, label: "001" });
+    expect(migrated[1]).toMatchObject({ col: 7, row: 0, label: "002" });
   });
 
-  test("keeps existing coordinates when present", () => {
+  test("keeps existing coordinates and labels when present", () => {
     const migrated = migrateStoredNotes([
-      { id: "note-1", text: "固定位置", tone: "blue", col: 12, row: 4 },
+      { id: "note-1", text: "固定位置", tone: "blue", col: 12, row: 4, label: "A1" },
     ]);
 
-    expect(migrated[0]).toMatchObject({ col: 12, row: 4 });
+    expect(migrated[0]).toMatchObject({ col: 12, row: 4, label: "A1" });
+  });
+
+  test("assigns default labels when coordinates exist but label is missing", () => {
+    const migrated = migrateStoredNotes([
+      { id: "note-1", text: "有坐标", tone: "yellow", col: 3, row: 2 },
+    ]);
+
+    expect(migrated[0]).toMatchObject({ col: 3, row: 2, label: "001" });
   });
 });
