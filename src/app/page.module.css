@@ -27,7 +27,7 @@
   --note-color: #d35a16;
   position: absolute;
   display: flex;
-  min-height: calc(5 * 34px);
+  height: calc(5 * 34px);
   flex-direction: column;
   gap: 0;
   padding: 0;
@@ -37,11 +37,8 @@
   box-shadow: 0 8px 16px rgba(17, 18, 23, 0.1);
   cursor: grab;
   touch-action: none;
+  overflow: hidden;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
-}
-
-.noteWide {
-  /* width set inline from grid span */
 }
 
 .noteDragging {
@@ -126,9 +123,25 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
-  padding: 0 18px 18px;
   min-height: 0;
+  padding: 4px 18px 18px;
+  overflow: hidden;
+}
+
+.noteBodyScroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+}
+
+.noteBodyScroll .composeInput {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .composeNote {

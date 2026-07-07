@@ -6,10 +6,10 @@ import { computeCanvasSize, findNewNotePlacement } from "./notePlacement";
 import { readStoredNotes, writeStoredNotes } from "./noteStorage";
 import {
   defaultNoteLabel,
-  getNoteColSpan,
   GRID,
-  isWideNote,
+  NOTE_COL_SPAN,
   NOTE_LABEL_MAX_LENGTH,
+  NOTE_ROW_SPAN,
   NOTE_TONES,
   sanitizeNoteLabel,
   TONE_LABELS,
@@ -159,8 +159,17 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     return Boolean(target.closest("button, textarea, input, select, a, [contenteditable='true']"));
   }
 
+  function isNoteBodyScrollable(body: HTMLElement | null) {
+    return Boolean(body && body.scrollHeight > body.clientHeight + 1);
+  }
+
   function handleNotePointerDown(event: React.PointerEvent<HTMLElement>, note: LocalNote) {
     if (openMenuNoteId === note.id || isInteractiveDragTarget(event.target)) return;
+
+    const target = event.target instanceof HTMLElement ? event.target : null;
+    const scrollArea = target?.closest(`.${styles.noteBodyScroll}`);
+    if (scrollArea instanceof HTMLElement && isNoteBodyScrollable(scrollArea)) return;
+
     startDrag(event, note);
   }
 
@@ -192,18 +201,14 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           return (
             <section
               key={note.id}
-              className={[
-                styles.note,
-                styles[note.tone],
-                isWideNote(note) ? styles.noteWide : "",
-                isDragging ? styles.noteDragging : "",
-              ]
+              className={[styles.note, styles[note.tone], isDragging ? styles.noteDragging : ""]
                 .filter(Boolean)
                 .join(" ")}
               style={{
                 left: col * GRID,
                 top: row * GRID,
-                width: getNoteColSpan(note) * GRID,
+                width: NOTE_COL_SPAN * GRID,
+                height: NOTE_ROW_SPAN * GRID,
                 zIndex: isDragging ? 100 : undefined,
               }}
               aria-label={`${note.text.trim() ? "我的便签" : "新便签"}：${noteLabel}，拖动空白区域可移动`}
@@ -299,43 +304,44 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               </div>
 
               <div className={styles.noteBody}>
-                {isEditingText ? (
-                  <textarea
-                    ref={editingTextNoteId === note.id ? editingTextAreaRef : null}
-                    className={styles.composeInput}
-                    value={note.text}
-                    onPointerDown={stopDragPropagation}
-                    onChange={(event) =>
-                      setNotes((currentNotes) =>
-                        currentNotes.map((currentNote) =>
-                          currentNote.id === note.id ? { ...currentNote, text: event.target.value } : currentNote,
-                        ),
-                      )
-                    }
-                    onKeyDown={(event) => handleTextKeyDown(event, note.id)}
-                    onBlur={(event) => {
-                      if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
-                      finishEditingText(note.id);
-                    }}
-                    aria-label="编辑便签"
-                    placeholder="写下一条只给自己看的便签..."
-                    rows={5}
-                  />
-                ) : (
-                  <button
-                    className={styles.noteTextButton}
-                    type="button"
-                    onPointerDown={stopDragPropagation}
-                    onClick={() => {
-                      setEditingTextNoteId(note.id);
-                      setEditingLabelNoteId(null);
-                      setOpenMenuNoteId(null);
-                    }}
-                    aria-label={`编辑便签：${note.text}`}
-                  >
-                    <span className={styles.noteText}>{note.text}</span>
-                  </button>
-                )}
+                <div className={styles.noteBodyScroll}>
+                  {isEditingText ? (
+                    <textarea
+                      ref={editingTextNoteId === note.id ? editingTextAreaRef : null}
+                      className={styles.composeInput}
+                      value={note.text}
+                      onPointerDown={stopDragPropagation}
+                      onChange={(event) =>
+                        setNotes((currentNotes) =>
+                          currentNotes.map((currentNote) =>
+                            currentNote.id === note.id ? { ...currentNote, text: event.target.value } : currentNote,
+                          ),
+                        )
+                      }
+                      onKeyDown={(event) => handleTextKeyDown(event, note.id)}
+                      onBlur={(event) => {
+                        if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
+                        finishEditingText(note.id);
+                      }}
+                      aria-label="编辑便签"
+                      placeholder="写下一条只给自己看的便签..."
+                    />
+                  ) : (
+                    <button
+                      className={styles.noteTextButton}
+                      type="button"
+                      onPointerDown={stopDragPropagation}
+                      onClick={() => {
+                        setEditingTextNoteId(note.id);
+                        setEditingLabelNoteId(null);
+                        setOpenMenuNoteId(null);
+                      }}
+                      aria-label={`编辑便签：${note.text}`}
+                    >
+                      <span className={styles.noteText}>{note.text}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </section>
           );

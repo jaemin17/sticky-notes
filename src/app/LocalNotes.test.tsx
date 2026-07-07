@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
 import styles from "./page.module.css";
+import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 
 describe("LocalNotes", () => {
   beforeEach(() => {
@@ -335,17 +336,24 @@ describe("LocalNotes", () => {
     canvasRectSpy.mockRestore();
   });
 
-  test("uses a wider card for long note text", async () => {
+  test("keeps a fixed card size and scrolls long note text inside the body", async () => {
     const longText =
-      "这是一条比较长的便利贴内容，用来记录更多细节、想法、待办事项和补充说明，所以它应该比普通短便签更宽一点。";
+      "这是一条比较长的便利贴内容，用来记录更多细节、想法、待办事项和补充说明，宽度保持不变，超出部分在便签内部滚动。";
     window.localStorage.setItem(
       "sticky-notes.local-notes",
-      JSON.stringify([{ id: "note-1", text: longText, tone: "yellow" }]),
+      JSON.stringify([{ id: "note-1", text: longText, tone: "yellow", label: "001", col: 2, row: 2 }]),
     );
 
     render(<LocalNotes initialIndex={0} />);
 
-    expect((await screen.findByText(longText)).closest("section")?.className).toContain("noteWide");
+    const note = (await screen.findByText(longText)).closest("section");
+    const noteBody = note?.querySelector(`.${styles.noteBodyScroll}`);
+
+    expect(note).toHaveStyle({
+      width: `${NOTE_COL_SPAN * GRID}px`,
+      height: `${NOTE_ROW_SPAN * GRID}px`,
+    });
+    expect(noteBody).toBeTruthy();
   });
 
   test("deletes a stored note from the page and localStorage", async () => {

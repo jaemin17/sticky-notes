@@ -1,7 +1,6 @@
 import {
   CANVAS_PADDING_COLS,
   CANVAS_PADDING_ROWS,
-  getNoteColSpan,
   GRID,
   NOTE_COL_SPAN,
   NOTE_ROW_SPAN,
@@ -34,7 +33,7 @@ export function computeCanvasSize(
   let contentMaxRow = 0;
 
   for (const note of notes) {
-    contentMaxCol = Math.max(contentMaxCol, note.col + getNoteColSpan(note));
+    contentMaxCol = Math.max(contentMaxCol, note.col + NOTE_COL_SPAN);
     contentMaxRow = Math.max(contentMaxRow, note.row + NOTE_ROW_SPAN);
   }
 
@@ -51,8 +50,7 @@ function overlapsExisting(
   colSpan: number,
 ): boolean {
   return notes.some((note) => {
-    const noteColSpan = getNoteColSpan(note);
-    const horizontalOverlap = col < note.col + noteColSpan && col + colSpan > note.col;
+    const horizontalOverlap = col < note.col + NOTE_COL_SPAN && col + colSpan > note.col;
     const verticalOverlap = row < note.row + NOTE_ROW_SPAN && row + NOTE_ROW_SPAN > note.row;
     return horizontalOverlap && verticalOverlap;
   });
