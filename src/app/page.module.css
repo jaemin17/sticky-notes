@@ -296,6 +296,10 @@
   letter-spacing: 0.03em;
 }
 
+.noteTextPlaceholder {
+  color: rgba(17, 18, 23, 0.42);
+}
+
 .noteTextButton {
   display: block;
   width: 100%;

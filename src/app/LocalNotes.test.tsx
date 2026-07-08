@@ -128,7 +128,7 @@ describe("LocalNotes", () => {
     expect(screen.queryByRole("button", { name: "选择绿色" })).not.toBeInTheDocument();
   });
 
-  test("removes a blank new note on blur", async () => {
+  test("keeps a blank new note on blur", async () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
@@ -137,8 +137,27 @@ describe("LocalNotes", () => {
 
     await user.tab();
 
-    expect(screen.queryByRole("article", { name: /新便签/ })).not.toBeInTheDocument();
-    expect(window.localStorage.getItem("sticky-notes.local-notes")).toBe("[]");
+    expect(screen.getByRole("article", { name: /新便签/ })).toBeInTheDocument();
+    expect(screen.getByText("写下一条只给自己看的便签...")).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"text":""');
+  });
+
+  test("keeps a note after clearing all text", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "原来的内容", tone: "yellow" }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+
+    await screen.findByText("原来的内容");
+    await user.click(screen.getByRole("button", { name: "编辑便签：原来的内容" }));
+    await user.clear(screen.getByLabelText("编辑便签"));
+    await user.tab();
+
+    expect(screen.getByRole("article", { name: /新便签/ })).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"text":""');
   });
 
   test("edits an existing note by clicking it", async () => {

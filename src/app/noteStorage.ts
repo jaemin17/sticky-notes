@@ -111,9 +111,14 @@ export function readStoredNotes(initialIndex = 0): LocalNote[] {
 }
 
 export function writeStoredNotes(notes: LocalNote[]): void {
-  const persisted = notes
-    .filter((note) => note.text.trim())
-    .map(({ id, label, text, tone, col, row }) => ({ id, label, text, tone, col, row }));
+  const persisted = notes.map(({ id, label, text, tone, col, row }) => ({
+    id,
+    label,
+    text,
+    tone,
+    col,
+    row,
+  }));
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
 }

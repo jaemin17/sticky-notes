@@ -102,7 +102,6 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   }
 
   function finishEditingText(noteId: string) {
-    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId || note.text.trim()));
     setEditingTextNoteId((currentId) => (currentId === noteId ? null : currentId));
   }
 
@@ -336,9 +335,13 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                         setEditingLabelNoteId(null);
                         setOpenMenuNoteId(null);
                       }}
-                      aria-label={`编辑便签：${note.text}`}
+                      aria-label={`编辑便签：${note.text.trim() || "空白便签"}`}
                     >
-                      <span className={styles.noteText}>{note.text}</span>
+                      <span
+                        className={`${styles.noteText} ${note.text.trim() ? "" : styles.noteTextPlaceholder}`}
+                      >
+                        {note.text.trim() || "写下一条只给自己看的便签..."}
+                      </span>
                     </button>
                   )}
                 </div>
