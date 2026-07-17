@@ -13,25 +13,51 @@ type DragState = {
 
 type UseNoteDragOptions = {
   boardRef: React.RefObject<HTMLElement | null>;
+  trashRef?: React.RefObject<HTMLElement | null>;
   disabled?: boolean;
   onMove: (noteId: string, col: number, row: number) => void;
+  onDelete?: (noteId: string) => void;
 };
 
-export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragOptions) {
+function isPointOverElement(clientX: number, clientY: number, element: HTMLElement | null) {
+  if (!element) return false;
+
+  const rect = element.getBoundingClientRect();
+  return (
+    clientX >= rect.left &&
+    clientX <= rect.right &&
+    clientY >= rect.top &&
+    clientY <= rect.bottom
+  );
+}
+
+export function useNoteDrag({
+  boardRef,
+  trashRef,
+  disabled = false,
+  onMove,
+  onDelete,
+}: UseNoteDragOptions) {
   const dragStateRef = useRef<DragState | null>(null);
   const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
+  const [isOverTrash, setIsOverTrash] = useState(false);
   const [previewPosition, setPreviewPosition] = useState<{ noteId: string; col: number; row: number } | null>(
     null,
   );
 
+  const clearDrag = useCallback(() => {
+    dragStateRef.current = null;
+    setDraggingNoteId(null);
+    setPreviewPosition(null);
+    setIsOverTrash(false);
+  }, []);
+
   const finishDrag = useCallback(
     (noteId: string, col: number, row: number) => {
       onMove(noteId, col, row);
-      dragStateRef.current = null;
-      setDraggingNoteId(null);
-      setPreviewPosition(null);
+      clearDrag();
     },
-    [onMove],
+    [clearDrag, onMove],
   );
 
   useEffect(() => {
@@ -47,6 +73,7 @@ export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragO
       const row = snapToRow(top);
 
       setPreviewPosition({ noteId: dragState.noteId, col, row });
+      setIsOverTrash(isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null));
     }
 
     function handlePointerUp(event: PointerEvent) {
@@ -55,9 +82,13 @@ export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragO
 
       const board = boardRef.current;
       if (!board) {
-        dragStateRef.current = null;
-        setDraggingNoteId(null);
-        setPreviewPosition(null);
+        clearDrag();
+        return;
+      }
+
+      if (isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null)) {
+        onDelete?.(dragState.noteId);
+        clearDrag();
         return;
       }
 
@@ -77,7 +108,7 @@ export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragO
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [boardRef, finishDrag]);
+  }, [boardRef, clearDrag, finishDrag, onDelete, trashRef]);
 
   function startDrag(event: React.PointerEvent<HTMLElement>, note: LocalNote) {
     if (disabled || event.button !== 0) return;
@@ -101,6 +132,7 @@ export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragO
 
     setDraggingNoteId(note.id);
     setPreviewPosition({ noteId: note.id, col: note.col, row: note.row });
+    setIsOverTrash(isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null));
   }
 
   function getNotePosition(note: LocalNote): { col: number; row: number } {
@@ -113,6 +145,7 @@ export function useNoteDrag({ boardRef, disabled = false, onMove }: UseNoteDragO
 
   return {
     draggingNoteId,
+    isOverTrash,
     startDrag,
     getNotePosition,
   };

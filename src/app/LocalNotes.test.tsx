@@ -39,6 +39,22 @@ describe("LocalNotes", () => {
     expect(screen.queryByText("写下一条只给自己看的便签...")).not.toBeInTheDocument();
   });
 
+  test("creates an editable note when clicking the empty state note", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    await user.click(await screen.findByRole("button", { name: "开始写第一条便签" }));
+
+    expect(screen.getByLabelText("编辑便签")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "开始写第一条便签" })).not.toBeInTheDocument();
+
+    await user.type(screen.getByLabelText("编辑便签"), "从空状态写起");
+    await user.tab();
+
+    expect(screen.getByText("从空状态写起")).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain("从空状态写起");
+  });
+
   test("shows only one add note button in the toolbar", () => {
     render(<LocalNotes initialIndex={0} />);
 
@@ -407,6 +423,87 @@ describe("LocalNotes", () => {
 
     expect(screen.queryByText("这条可以删掉")).not.toBeInTheDocument();
     expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain("这条可以删掉");
+  });
+
+  test("shows a trash drop zone in the bottom-right corner", () => {
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(screen.getByLabelText("拖到此处删除便签")).toBeInTheDocument();
+  });
+
+  test("deletes a note when dragged onto the trash zone", async () => {
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "拖进垃圾桶", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const note = (await screen.findByText("拖进垃圾桶")).closest("section");
+    const trash = screen.getByLabelText("拖到此处删除便签");
+    expect(note).toBeTruthy();
+
+    const canvas = note?.parentElement;
+    const canvasRectSpy = vi.spyOn(canvas as HTMLElement, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      width: 1200,
+      height: 800,
+      right: 1200,
+      bottom: 800,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    const trashRectSpy = vi.spyOn(trash, "getBoundingClientRect").mockReturnValue({
+      x: 900,
+      y: 700,
+      left: 900,
+      top: 700,
+      width: 80,
+      height: 80,
+      right: 980,
+      bottom: 780,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    Object.defineProperty(note as HTMLElement, "setPointerCapture", {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(note as HTMLElement, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 110,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      clientX: 940,
+      clientY: 740,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      clientX: 940,
+      clientY: 740,
+      button: 0,
+      buttons: 0,
+      pointerType: "mouse",
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("拖进垃圾桶")).not.toBeInTheDocument();
+    });
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain("拖进垃圾桶");
+
+    canvasRectSpy.mockRestore();
+    trashRectSpy.mockRestore();
   });
 
   test("changes a stored note color from the note menu", async () => {

@@ -31,6 +31,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const editingLabelInputRef = useRef<HTMLInputElement | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
+  const trashRef = useRef<HTMLDivElement | null>(null);
 
   const isEditing = Boolean(editingTextNoteId || editingLabelNoteId);
 
@@ -40,10 +41,19 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     );
   };
 
-  const { draggingNoteId, startDrag, getNotePosition } = useNoteDrag({
+  function deleteNote(noteId: string) {
+    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId));
+    setOpenMenuNoteId(null);
+    setEditingTextNoteId((currentId) => (currentId === noteId ? null : currentId));
+    setEditingLabelNoteId((currentId) => (currentId === noteId ? null : currentId));
+  }
+
+  const { draggingNoteId, isOverTrash, startDrag, getNotePosition } = useNoteDrag({
     boardRef,
+    trashRef,
     disabled: isEditing,
     onMove: moveNote,
+    onDelete: deleteNote,
   });
 
   useEffect(() => {
@@ -141,13 +151,6 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     finishEditingLabel(noteId, event.currentTarget.value, noteIndex);
   }
 
-  function deleteNote(noteId: string) {
-    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId));
-    setOpenMenuNoteId(null);
-    setEditingTextNoteId((currentId) => (currentId === noteId ? null : currentId));
-    setEditingLabelNoteId((currentId) => (currentId === noteId ? null : currentId));
-  }
-
   function updateNoteTone(noteId: string, tone: NoteTone) {
     setNotes((currentNotes) =>
       currentNotes.map((note) => (note.id === noteId ? { ...note, tone } : note)),
@@ -192,15 +195,17 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         aria-label="便签画布"
       >
         {hasLoadedStoredNotes && notes.length === 0 ? (
-          <div
-            className={`${styles.emptyStateNote} ${styles.yellow}`}
+          <button
+            type="button"
+            className={`${styles.emptyStateNote} ${styles[newNoteTone]}`}
             style={{
               left: emptyNotePlacement.col * GRID,
               top: emptyNotePlacement.row * GRID,
               width: NOTE_COL_SPAN * GRID,
               height: NOTE_ROW_SPAN * GRID,
             }}
-            aria-hidden="true"
+            onClick={createBlankNote}
+            aria-label="开始写第一条便签"
           >
             <div className={styles.emptyStateHeader}>
               <span className={styles.emptyStateGrip} aria-hidden="true">
@@ -209,7 +214,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               <span className={styles.emptyStateLabel}>001</span>
             </div>
             <p className={styles.emptyStateText}>写下一条只给自己看的便签...</p>
-          </div>
+          </button>
         ) : null}
         {notes.map((note, noteIndex) => {
           const noteTitle = note.label.trim() || defaultNoteLabel(noteIndex, initialIndex);
@@ -417,6 +422,36 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             </div>
           ) : null}
         </div>
+      </div>
+
+      <div
+        ref={trashRef}
+        className={[
+          styles.trashZone,
+          draggingNoteId ? styles.trashZoneActive : "",
+          isOverTrash ? styles.trashZoneHover : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        aria-label="拖到此处删除便签"
+      >
+        <svg
+          className={styles.trashIcon}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <path d="M3 6h18" />
+          <path d="M8 6V4h8v2" />
+          <path d="M19 6l-1 14H6L5 6" />
+          <path d="M10 11v6" />
+          <path d="M14 11v6" />
+        </svg>
       </div>
     </>
   );
