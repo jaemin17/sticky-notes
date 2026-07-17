@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
 import styles from "./page.module.css";
 import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
@@ -8,6 +8,10 @@ import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 describe("LocalNotes", () => {
   beforeEach(() => {
     window.localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   test("adds a note from the bottom button and stores it", async () => {
@@ -472,6 +476,29 @@ describe("LocalNotes", () => {
 
     expect(screen.queryByText("这条可以删掉")).not.toBeInTheDocument();
     expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain("这条可以删掉");
+  });
+
+  test("waits before showing the empty state after deleting the last note", async () => {
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "最后一张先空一会", tone: "yellow" }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(await screen.findByText("最后一张先空一会")).toBeInTheDocument();
+    vi.useFakeTimers();
+    fireEvent.click(screen.getByRole("button", { name: "更多操作：最后一张先空一会" }));
+    fireEvent.click(screen.getByRole("button", { name: "删除便签：最后一张先空一会" }));
+
+    expect(screen.queryByText("最后一张先空一会")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "开始写第一条便签" })).not.toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    expect(screen.getByRole("button", { name: "开始写第一条便签" })).toBeInTheDocument();
   });
 
   test("shows a trash drop zone in the bottom-right corner", () => {

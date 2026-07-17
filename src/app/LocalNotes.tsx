@@ -18,8 +18,11 @@ import {
 } from "./noteTypes";
 import { useNoteDrag } from "./useNoteDrag";
 
+const EMPTY_NOTE_REAPPEAR_DELAY_MS = 400;
+
 export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [notes, setNotes] = useState<LocalNote[]>([]);
+  const [emptyStatePhase, setEmptyStatePhase] = useState<"hidden" | "entering" | "visible">("visible");
   const [hasLoadedStoredNotes, setHasLoadedStoredNotes] = useState(false);
   const [editingTextNoteId, setEditingTextNoteId] = useState<string | null>(null);
   const [editingLabelNoteId, setEditingLabelNoteId] = useState<string | null>(null);
@@ -33,6 +36,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const trashRef = useRef<HTMLDivElement | null>(null);
   const toolbarColorCloseTimeoutRef = useRef<number | null>(null);
+  const emptyStateTimerRef = useRef<number | null>(null);
 
   const isEditing = Boolean(editingTextNoteId || editingLabelNoteId);
 
@@ -62,6 +66,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setIsToolbarColorMenuOpen(false);
   }
 
+  function clearEmptyStateTimer() {
+    if (emptyStateTimerRef.current === null) return;
+    window.clearTimeout(emptyStateTimerRef.current);
+    emptyStateTimerRef.current = null;
+  }
+
   const moveNote = (noteId: string, col: number, row: number) => {
     setNotes((currentNotes) =>
       currentNotes.map((note) => (note.id === noteId ? { ...note, col, row } : note)),
@@ -69,7 +79,20 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   };
 
   function deleteNote(noteId: string) {
-    setNotes((currentNotes) => currentNotes.filter((note) => note.id !== noteId));
+    setNotes((currentNotes) => {
+      const nextNotes = currentNotes.filter((note) => note.id !== noteId);
+
+      if (currentNotes.length === 1 && nextNotes.length === 0) {
+        clearEmptyStateTimer();
+        setEmptyStatePhase("hidden");
+        emptyStateTimerRef.current = window.setTimeout(() => {
+          setEmptyStatePhase("entering");
+          emptyStateTimerRef.current = null;
+        }, EMPTY_NOTE_REAPPEAR_DELAY_MS);
+      }
+
+      return nextNotes;
+    });
     setOpenMenuNoteId(null);
     setEditingTextNoteId((currentId) => (currentId === noteId ? null : currentId));
     setEditingLabelNoteId((currentId) => (currentId === noteId ? null : currentId));
@@ -141,10 +164,13 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
       if (toolbarColorCloseTimeoutRef.current !== null) {
         window.clearTimeout(toolbarColorCloseTimeoutRef.current);
       }
+      clearEmptyStateTimer();
     };
   }, []);
 
   function createBlankNote() {
+    clearEmptyStateTimer();
+    setEmptyStatePhase("visible");
     const { col, row } = findNewNotePlacement(notes);
     const nextNote: LocalNote = {
       id: crypto.randomUUID(),
@@ -230,6 +256,15 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   }
 
   const toolbarToneOptions = NOTE_TONES.filter((tone) => tone !== newNoteTone);
+  const shouldShowEmptyState =
+    hasLoadedStoredNotes && notes.length === 0 && emptyStatePhase !== "hidden";
+  const emptyStateClassName = [
+    styles.emptyStateNote,
+    styles[newNoteTone],
+    emptyStatePhase === "entering" ? styles.emptyStateNoteEntering : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -242,10 +277,10 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         }}
         aria-label="便签画布"
       >
-        {hasLoadedStoredNotes && notes.length === 0 ? (
+        {shouldShowEmptyState ? (
           <button
             type="button"
-            className={`${styles.emptyStateNote} ${styles[newNoteTone]}`}
+            className={emptyStateClassName}
             style={{
               left: emptyNotePlacement.col * GRID,
               top: emptyNotePlacement.row * GRID,
@@ -253,6 +288,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               height: NOTE_ROW_SPAN * GRID,
             }}
             onClick={createBlankNote}
+            onAnimationEnd={() => setEmptyStatePhase("visible")}
             aria-label="开始写第一条便签"
           >
             <div className={styles.emptyStateHeader}>

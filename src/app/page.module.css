@@ -67,6 +67,10 @@
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
+.emptyStateNoteEntering {
+  animation: emptyStateNoteEnter 260ms ease-out both;
+}
+
 .emptyStateNote:hover {
   border-color: color-mix(in oklab, var(--note-color) 36%, rgba(17, 18, 23, 0.2));
   box-shadow: 0 8px 18px rgba(17, 18, 23, 0.1);
@@ -142,6 +146,24 @@
   border-color: rgba(17, 18, 23, 0.22);
   box-shadow: 0 22px 36px rgba(17, 18, 23, 0.18);
   transform: rotate(-0.6deg);
+}
+
+@keyframes emptyStateNoteEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(6px) rotate(-0.35deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(-0.35deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .emptyStateNoteEntering {
+    animation-duration: 1ms;
+  }
 }
 
 .noteHeader {
