@@ -114,6 +114,7 @@
   cursor: grab;
   touch-action: none;
   overflow: hidden;
+  user-select: none;
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
@@ -188,6 +189,7 @@
   line-height: 1;
   letter-spacing: 0.02em;
   outline: none;
+  user-select: text;
 }
 
 .noteLabelInput:focus {
@@ -254,6 +256,7 @@
   line-height: 1.42;
   letter-spacing: 0.03em;
   outline: none;
+  user-select: text;
 }
 
 .composeInput::placeholder {

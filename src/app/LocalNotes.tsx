@@ -96,6 +96,19 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     return () => window.removeEventListener("resize", updateCanvasSize);
   }, [notes]);
 
+  useEffect(() => {
+    function preventNoteTextSelection(event: Event) {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+      if (!target.closest(`.${styles.note}`)) return;
+      event.preventDefault();
+    }
+
+    document.addEventListener("selectstart", preventNoteTextSelection);
+    return () => document.removeEventListener("selectstart", preventNoteTextSelection);
+  }, []);
+
   function createBlankNote() {
     const { col, row } = findNewNotePlacement(notes);
     const nextNote: LocalNote = {

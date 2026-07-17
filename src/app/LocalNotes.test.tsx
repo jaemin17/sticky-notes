@@ -55,6 +55,27 @@ describe("LocalNotes", () => {
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain("从空状态写起");
   });
 
+  test("prevents selecting note text until the note is being edited", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "不能随便选中", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const noteText = await screen.findByText("不能随便选中");
+
+    const blocked = new Event("selectstart", { bubbles: true, cancelable: true });
+    noteText.dispatchEvent(blocked);
+    expect(blocked.defaultPrevented).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: "编辑便签：不能随便选中" }));
+    const editor = screen.getByLabelText("编辑便签");
+    const allowed = new Event("selectstart", { bubbles: true, cancelable: true });
+    editor.dispatchEvent(allowed);
+    expect(allowed.defaultPrevented).toBe(false);
+  });
+
   test("shows only one add note button in the toolbar", () => {
     render(<LocalNotes initialIndex={0} />);
 
