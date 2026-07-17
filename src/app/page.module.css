@@ -22,6 +22,65 @@
   margin: 0 auto;
 }
 
+.emptyStateNote {
+  --note-accent: #ffe176;
+  --note-color: #d35a16;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  border: 1px dashed color-mix(in oklab, var(--note-color) 22%, rgba(17, 18, 23, 0.18));
+  border-radius: 2px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--note-accent) 72%, white) 0%,
+      color-mix(in oklab, var(--note-accent) 58%, white) 100%
+    );
+  box-shadow: 0 6px 14px rgba(17, 18, 23, 0.07);
+  pointer-events: none;
+  user-select: none;
+  transform: rotate(-0.35deg);
+}
+
+.emptyStateHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 34px;
+  padding: 0 14px 0 10px;
+}
+
+.emptyStateGrip {
+  display: block;
+  flex-shrink: 0;
+  width: 28px;
+  color: color-mix(in oklab, var(--note-color) 38%, #111217);
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: -0.18em;
+  text-align: center;
+  transform: rotate(90deg);
+}
+
+.emptyStateLabel {
+  color: color-mix(in oklab, var(--note-color) 52%, #111217);
+  font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.emptyStateText {
+  flex: 1;
+  margin: 0;
+  padding: 4px 18px 18px;
+  color: rgba(17, 18, 23, 0.44);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: clamp(14px, 1.15vw, 17px);
+  line-height: 1.42;
+  letter-spacing: 0.03em;
+}
+
 .note {
   --note-accent: #ffe176;
   --note-color: #d35a16;

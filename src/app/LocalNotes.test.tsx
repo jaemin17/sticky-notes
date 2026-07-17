@@ -23,6 +23,22 @@ describe("LocalNotes", () => {
     expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain("只给自己看的想法");
   });
 
+  test("shows empty state copy when there are no notes", async () => {
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(await screen.findByText("写下一条只给自己看的便签...")).toBeInTheDocument();
+  });
+
+  test("hides empty state after adding a note", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    await screen.findByText("写下一条只给自己看的便签...");
+    await user.click(screen.getByRole("button", { name: "写一张" }));
+
+    expect(screen.queryByText("写下一条只给自己看的便签...")).not.toBeInTheDocument();
+  });
+
   test("shows only one add note button in the toolbar", () => {
     render(<LocalNotes initialIndex={0} />);
 

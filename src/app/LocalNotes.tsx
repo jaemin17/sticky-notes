@@ -27,6 +27,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
+  const [emptyNotePlacement, setEmptyNotePlacement] = useState({ col: 0, row: 0 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const editingLabelInputRef = useRef<HTMLInputElement | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
@@ -77,6 +78,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   useEffect(() => {
     function updateCanvasSize() {
       setCanvasSize(computeCanvasSize(notes, window.innerWidth, window.innerHeight));
+      setEmptyNotePlacement(findNewNotePlacement([]));
     }
 
     updateCanvasSize();
@@ -189,6 +191,26 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         }}
         aria-label="便签画布"
       >
+        {hasLoadedStoredNotes && notes.length === 0 ? (
+          <div
+            className={`${styles.emptyStateNote} ${styles.yellow}`}
+            style={{
+              left: emptyNotePlacement.col * GRID,
+              top: emptyNotePlacement.row * GRID,
+              width: NOTE_COL_SPAN * GRID,
+              height: NOTE_ROW_SPAN * GRID,
+            }}
+            aria-hidden="true"
+          >
+            <div className={styles.emptyStateHeader}>
+              <span className={styles.emptyStateGrip} aria-hidden="true">
+                ⋮⋮
+              </span>
+              <span className={styles.emptyStateLabel}>001</span>
+            </div>
+            <p className={styles.emptyStateText}>写下一条只给自己看的便签...</p>
+          </div>
+        ) : null}
         {notes.map((note, noteIndex) => {
           const noteTitle = note.label.trim() || defaultNoteLabel(noteIndex, initialIndex);
           const noteLabel = note.text.trim() || noteTitle || "新便签";
