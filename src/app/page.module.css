@@ -578,6 +578,15 @@
   transform: translateX(-50%);
 }
 
+.toolbarColorPopover::before {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  height: 16px;
+  content: "";
+}
+
 .toolbarColorPopover::after {
   position: absolute;
   left: 50%;

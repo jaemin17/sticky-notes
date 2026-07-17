@@ -32,8 +32,35 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const editingLabelInputRef = useRef<HTMLInputElement | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const trashRef = useRef<HTMLDivElement | null>(null);
+  const toolbarColorCloseTimeoutRef = useRef<number | null>(null);
 
   const isEditing = Boolean(editingTextNoteId || editingLabelNoteId);
+
+  function openToolbarColorMenu() {
+    if (toolbarColorCloseTimeoutRef.current !== null) {
+      window.clearTimeout(toolbarColorCloseTimeoutRef.current);
+      toolbarColorCloseTimeoutRef.current = null;
+    }
+    setIsToolbarColorMenuOpen(true);
+  }
+
+  function scheduleCloseToolbarColorMenu() {
+    if (toolbarColorCloseTimeoutRef.current !== null) {
+      window.clearTimeout(toolbarColorCloseTimeoutRef.current);
+    }
+    toolbarColorCloseTimeoutRef.current = window.setTimeout(() => {
+      setIsToolbarColorMenuOpen(false);
+      toolbarColorCloseTimeoutRef.current = null;
+    }, 120);
+  }
+
+  function closeToolbarColorMenu() {
+    if (toolbarColorCloseTimeoutRef.current !== null) {
+      window.clearTimeout(toolbarColorCloseTimeoutRef.current);
+      toolbarColorCloseTimeoutRef.current = null;
+    }
+    setIsToolbarColorMenuOpen(false);
+  }
 
   const moveNote = (noteId: string, col: number, row: number) => {
     setNotes((currentNotes) =>
@@ -107,6 +134,14 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
     document.addEventListener("selectstart", preventNoteTextSelection);
     return () => document.removeEventListener("selectstart", preventNoteTextSelection);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (toolbarColorCloseTimeoutRef.current !== null) {
+        window.clearTimeout(toolbarColorCloseTimeoutRef.current);
+      }
+    };
   }, []);
 
   function createBlankNote() {
@@ -405,11 +440,16 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           </span>
           <span>写一张</span>
         </button>
-        <div className={styles.toolbarColorMenu} aria-label="选择新便签颜色">
+        <div
+          className={styles.toolbarColorMenu}
+          aria-label="选择新便签颜色"
+          onMouseEnter={openToolbarColorMenu}
+          onMouseLeave={scheduleCloseToolbarColorMenu}
+        >
           <button
             className={styles.toolbarMenuButton}
             type="button"
-            onClick={() => setIsToolbarColorMenuOpen((isOpen) => !isOpen)}
+            onClick={openToolbarColorMenu}
             aria-label={`展开新便签颜色，当前${TONE_LABELS[newNoteTone]}`}
             aria-expanded={isToolbarColorMenuOpen}
           >
@@ -424,7 +464,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                   type="button"
                   onClick={() => {
                     setNewNoteTone(tone);
-                    setIsToolbarColorMenuOpen(false);
+                    closeToolbarColorMenu();
                   }}
                   aria-label={`选择${TONE_LABELS[tone]}`}
                   aria-pressed={newNoteTone === tone}
