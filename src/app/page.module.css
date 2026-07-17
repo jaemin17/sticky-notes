@@ -504,48 +504,51 @@
 
 .trashZone {
   position: fixed;
-  right: max(24px, env(safe-area-inset-right));
-  bottom: max(24px, env(safe-area-inset-bottom));
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
   z-index: 20;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border: 1px solid rgba(17, 18, 23, 0.1);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 24px rgba(17, 18, 23, 0.1);
-  color: rgba(17, 18, 23, 0.42);
+  width: 148px;
+  height: 148px;
+  border: 2.5px dashed transparent;
+  border-radius: 20px;
+  background: transparent;
+  color: #eadfcd;
   pointer-events: none;
-  backdrop-filter: blur(14px);
   transition:
     color 160ms ease,
-    background 160ms ease,
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    border-color 160ms ease;
 }
 
 .trashZoneActive {
-  color: rgba(17, 18, 23, 0.62);
-  border-color: rgba(17, 18, 23, 0.16);
-  box-shadow: 0 12px 28px rgba(17, 18, 23, 0.14);
-  transform: translateY(-2px);
+  color: #b9a98c;
 }
 
 .trashZoneHover {
-  color: #b42318;
-  border-color: color-mix(in oklab, #b42318 35%, rgba(17, 18, 23, 0.12));
-  background: color-mix(in oklab, #fee4e2 72%, white);
-  box-shadow: 0 14px 30px rgba(180, 35, 24, 0.16);
-  transform: scale(1.08) translateY(-2px);
+  border-color: rgba(17, 18, 23, 0.22);
+  color: #c45b4a;
 }
 
 .trashIcon {
   display: block;
-  width: 28px;
-  height: 28px;
+  width: 60px;
+  height: 60px;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
+    drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
+  transition: color 160ms ease, filter 160ms ease;
+}
+
+.trashZoneActive .trashIcon {
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5))
+    drop-shadow(0 -0.75px 0.5px rgba(90, 70, 40, 0.14));
+}
+
+.trashZoneHover .trashIcon {
+  filter: none;
 }
 
 .toolbarColorMenu {

@@ -438,19 +438,18 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         <svg
           className={styles.trashIcon}
           viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
           focusable="false"
           aria-hidden="true"
         >
-          <path d="M3 6h18" />
-          <path d="M8 6V4h8v2" />
-          <path d="M19 6l-1 14H6L5 6" />
-          <path d="M10 11v6" />
-          <path d="M14 11v6" />
+          <path
+            fill="currentColor"
+            d="M9.7 2.9h4.6c.45 0 .8.35.8.8V4.55H8.9V3.7c0-.45.35-.8.8-.8ZM5.35 4.55h13.3c.55 0 1 .45 1 1v.35c0 .28-.22.5-.5.5H4.85c-.28 0-.5-.22-.5-.5v-.35c0-.55.45-1 1-1Z"
+          />
+          <path
+            fill="currentColor"
+            fillRule="evenodd"
+            d="M5.55 7.85 6.55 19.9c.1 1.05.98 1.85 2.04 1.85h6.82c1.06 0 1.94-.8 2.04-1.85L18.45 7.85H5.55Zm3.05 2.35c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Z"
+          />
         </svg>
       </div>
     </>

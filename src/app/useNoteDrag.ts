@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { clampNotePosition, snapToCol, snapToRow } from "./notePlacement";
-import { GRID, type LocalNote } from "./noteTypes";
+import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN, type LocalNote } from "./noteTypes";
 
 type DragState = {
   noteId: string;
@@ -19,16 +19,37 @@ type UseNoteDragOptions = {
   onDelete?: (noteId: string) => void;
 };
 
-function isPointOverElement(clientX: number, clientY: number, element: HTMLElement | null) {
-  if (!element) return false;
-
-  const rect = element.getBoundingClientRect();
+function isPointInRect(clientX: number, clientY: number, rect: DOMRect) {
   return (
     clientX >= rect.left &&
     clientX <= rect.right &&
     clientY >= rect.top &&
     clientY <= rect.bottom
   );
+}
+
+/** Activate trash when any corner of the note enters the dashed drop zone. */
+function isNoteCornerInTrash(
+  boardRect: DOMRect,
+  noteLeft: number,
+  noteTop: number,
+  trash: HTMLElement | null,
+) {
+  if (!trash) return false;
+
+  const trashRect = trash.getBoundingClientRect();
+  const width = NOTE_COL_SPAN * GRID;
+  const height = NOTE_ROW_SPAN * GRID;
+  const left = boardRect.left + noteLeft;
+  const top = boardRect.top + noteTop;
+  const corners: Array<[number, number]> = [
+    [left, top],
+    [left + width, top],
+    [left, top + height],
+    [left + width, top + height],
+  ];
+
+  return corners.some(([x, y]) => isPointInRect(x, y, trashRect));
 }
 
 export function useNoteDrag({
@@ -73,7 +94,9 @@ export function useNoteDrag({
       const row = snapToRow(top);
 
       setPreviewPosition({ noteId: dragState.noteId, col, row });
-      setIsOverTrash(isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null));
+      setIsOverTrash(
+        isNoteCornerInTrash(boardRect, col * GRID, row * GRID, trashRef?.current ?? null),
+      );
     }
 
     function handlePointerUp(event: PointerEvent) {
@@ -86,17 +109,20 @@ export function useNoteDrag({
         return;
       }
 
-      if (isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null)) {
+      const boardRect = board.getBoundingClientRect();
+      const left = event.clientX - boardRect.left - dragState.grabOffsetX;
+      const top = event.clientY - boardRect.top - dragState.grabOffsetY;
+      const col = snapToCol(left);
+      const row = snapToRow(top);
+
+      if (isNoteCornerInTrash(boardRect, col * GRID, row * GRID, trashRef?.current ?? null)) {
         onDelete?.(dragState.noteId);
         clearDrag();
         return;
       }
 
-      const boardRect = board.getBoundingClientRect();
-      const left = event.clientX - boardRect.left - dragState.grabOffsetX;
-      const top = event.clientY - boardRect.top - dragState.grabOffsetY;
-      const { col, row } = clampNotePosition(snapToCol(left), snapToRow(top));
-      finishDrag(dragState.noteId, col, row);
+      const clamped = clampNotePosition(col, row);
+      finishDrag(dragState.noteId, clamped.col, clamped.row);
     }
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -132,7 +158,7 @@ export function useNoteDrag({
 
     setDraggingNoteId(note.id);
     setPreviewPosition({ noteId: note.id, col: note.col, row: note.row });
-    setIsOverTrash(isPointOverElement(event.clientX, event.clientY, trashRef?.current ?? null));
+    setIsOverTrash(isNoteCornerInTrash(boardRect, noteLeft, noteTop, trashRef?.current ?? null));
   }
 
   function getNotePosition(note: LocalNote): { col: number; row: number } {

@@ -431,7 +431,7 @@ describe("LocalNotes", () => {
     expect(screen.getByLabelText("拖到此处删除便签")).toBeInTheDocument();
   });
 
-  test("deletes a note when dragged onto the trash zone", async () => {
+  test("deletes a note when a card corner enters the trash zone", async () => {
     window.localStorage.setItem(
       "sticky-notes.local-notes",
       JSON.stringify([{ id: "note-1", text: "拖进垃圾桶", tone: "yellow", label: "001", col: 2, row: 2 }]),
@@ -472,6 +472,7 @@ describe("LocalNotes", () => {
       value: vi.fn(),
     });
 
+    // Pointer stays outside the trash zone; the note's bottom-right corner enters it.
     fireEvent.pointerDown(note as HTMLElement, {
       pointerId: 1,
       clientX: 120,
@@ -482,16 +483,16 @@ describe("LocalNotes", () => {
     });
     fireEvent.pointerMove(window, {
       pointerId: 1,
-      clientX: 940,
-      clientY: 740,
+      clientX: 766,
+      clientY: 586,
       button: 0,
       buttons: 1,
       pointerType: "mouse",
     });
     fireEvent.pointerUp(window, {
       pointerId: 1,
-      clientX: 940,
-      clientY: 740,
+      clientX: 766,
+      clientY: 586,
       button: 0,
       buttons: 0,
       pointerType: "mouse",
