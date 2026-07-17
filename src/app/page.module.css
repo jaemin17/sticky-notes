@@ -15,9 +15,9 @@
   position: absolute;
   top: 22px;
   left: 32px;
-  color: rgba(17, 18, 23, 0.5);
+  color: rgba(17, 18, 23, 0.62);
   font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   font-style: italic;
   line-height: 1;

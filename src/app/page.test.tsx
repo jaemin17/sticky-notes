@@ -7,7 +7,7 @@ test("shows today's date in the top-left header using italic text", () => {
   render(<Home />);
 
   const today = formatDateStamp(new Date());
-  const date = screen.getByText(today.label);
+  const date = screen.getByText((_, element) => element?.tagName === "EM" && element.textContent === today.label);
 
   expect(date.tagName).toBe("EM");
   expect(date.closest("time")).toHaveAttribute("dateTime", today.dateTime);
