@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Kalam, Outfit } from "next/font/google";
+import { Figtree, Geist, Geist_Mono, Kalam } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,10 +18,11 @@ const kalam = Kalam({
   weight: ["400"],
 });
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
   weight: ["500"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -37,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${outfit.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${figtree.variable}`}
     >
       <body>{children}</body>
     </html>
