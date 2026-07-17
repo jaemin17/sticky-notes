@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Kalam } from "next/font/google";
+import { Geist, Geist_Mono, Kalam, Outfit } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,6 +18,12 @@ const kalam = Kalam({
   weight: ["400"],
 });
 
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+  weight: ["500"],
+});
+
 export const metadata: Metadata = {
   title: "我的便签网站",
   description: "一个使用 Next.js 和 GitHub Pages 发布的便签网站练习项目。",
@@ -29,7 +35,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable}`}>
+    <html
+      lang="zh-CN"
+      className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${outfit.variable}`}
+    >
       <body>{children}</body>
     </html>
   );
