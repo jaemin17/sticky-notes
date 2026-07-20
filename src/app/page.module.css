@@ -594,11 +594,11 @@
 }
 
 .trashZoneActive .trashLid {
-  transform: rotate(-16deg) translateY(-0.5px);
+  transform: rotate(-16deg) translateY(-1.5px);
 }
 
 .trashZoneHover .trashLid {
-  transform: rotate(-34deg) translateY(-1.5px);
+  transform: rotate(-34deg) translateY(-3px);
 }
 
 .trashZoneActive .trashIcon {
