@@ -530,10 +530,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           focusable="false"
           aria-hidden="true"
         >
-          <path
-            fill="currentColor"
-            d="M9.7 2.9h4.6c.45 0 .8.35.8.8V4.55H8.9V3.7c0-.45.35-.8.8-.8ZM5.35 4.55h13.3c.55 0 1 .45 1 1v.35c0 .28-.22.5-.5.5H4.85c-.28 0-.5-.22-.5-.5v-.35c0-.55.45-1 1-1Z"
-          />
+          <g className={styles.trashLid}>
+            <path
+              fill="currentColor"
+              d="M9.7 2.9h4.6c.45 0 .8.35.8.8V4.55H8.9V3.7c0-.45.35-.8.8-.8ZM5.35 4.55h13.3c.55 0 1 .45 1 1v.35c0 .28-.22.5-.5.5H4.85c-.28 0-.5-.22-.5-.5v-.35c0-.55.45-1 1-1Z"
+            />
+          </g>
           <path
             fill="currentColor"
             fillRule="evenodd"

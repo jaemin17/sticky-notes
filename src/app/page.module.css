@@ -579,10 +579,25 @@
   display: block;
   width: 60px;
   height: 60px;
+  overflow: visible;
   filter:
     drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
     drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
   transition: color 160ms ease, filter 160ms ease;
+}
+
+.trashLid {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  transition: transform 220ms cubic-bezier(0.34, 1.15, 0.64, 1);
+}
+
+.trashZoneActive .trashLid {
+  transform: rotate(-16deg) translateY(-0.5px);
+}
+
+.trashZoneHover .trashLid {
+  transform: rotate(-34deg) translateY(-1.5px);
 }
 
 .trashZoneActive .trashIcon {
@@ -593,6 +608,12 @@
 
 .trashZoneHover .trashIcon {
   filter: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trashLid {
+    transition-duration: 1ms;
+  }
 }
 
 .toolbarColorMenu {
