@@ -5,9 +5,29 @@ import { LocalNotes } from "./LocalNotes";
 import styles from "./page.module.css";
 import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 
+const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
+
+function mockViewport(isNarrow: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query === NARROW_VIEWPORT_QUERY ? isNarrow : false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+}
+
 describe("LocalNotes", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    mockViewport(false);
   });
 
   afterEach(() => {
@@ -507,6 +527,13 @@ describe("LocalNotes", () => {
     expect(screen.getByLabelText("拖到此处删除便签")).toBeInTheDocument();
   });
 
+  test("hides the trash drop zone on narrow viewports", () => {
+    mockViewport(true);
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(screen.queryByLabelText("拖到此处删除便签")).not.toBeInTheDocument();
+  });
+
   test("deletes a note when a card corner enters the trash zone", async () => {
     window.localStorage.setItem(
       "sticky-notes.local-notes",
@@ -581,6 +608,67 @@ describe("LocalNotes", () => {
 
     canvasRectSpy.mockRestore();
     trashRectSpy.mockRestore();
+  });
+
+  test("does not delete a note via trash drop on narrow viewports", async () => {
+    mockViewport(true);
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "手机上别拖删", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const note = (await screen.findByText("手机上别拖删")).closest("section");
+    expect(note).toBeTruthy();
+    expect(screen.queryByLabelText("拖到此处删除便签")).not.toBeInTheDocument();
+
+    const canvas = note?.parentElement;
+    const canvasRectSpy = vi.spyOn(canvas as HTMLElement, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      width: 390,
+      height: 800,
+      right: 390,
+      bottom: 800,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    Object.defineProperty(note as HTMLElement, "setPointerCapture", {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(note as HTMLElement, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 110,
+      button: 0,
+      buttons: 1,
+      pointerType: "touch",
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      clientX: 300,
+      clientY: 700,
+      button: 0,
+      buttons: 1,
+      pointerType: "touch",
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      clientX: 300,
+      clientY: 700,
+      button: 0,
+      buttons: 0,
+      pointerType: "touch",
+    });
+
+    expect(await screen.findByText("手机上别拖删")).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain("手机上别拖删");
+
+    canvasRectSpy.mockRestore();
   });
 
   test("changes a stored note color from the note menu", async () => {

@@ -19,6 +19,26 @@ import {
 import { useNoteDrag } from "./useNoteDrag";
 
 const EMPTY_NOTE_REAPPEAR_DELAY_MS = 400;
+const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
+
+function useNarrowViewport() {
+  const [isNarrow, setIsNarrow] = useState(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
+    return window.matchMedia(NARROW_VIEWPORT_QUERY).matches;
+  });
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== "function") return;
+
+    const media = window.matchMedia(NARROW_VIEWPORT_QUERY);
+    const update = () => setIsNarrow(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  return isNarrow;
+}
 
 export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [notes, setNotes] = useState<LocalNote[]>([]);
@@ -37,6 +57,8 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const trashRef = useRef<HTMLDivElement | null>(null);
   const toolbarColorCloseTimeoutRef = useRef<number | null>(null);
   const emptyStateTimerRef = useRef<number | null>(null);
+  const isNarrowViewport = useNarrowViewport();
+  const canDragDelete = !isNarrowViewport;
 
   const isEditing = Boolean(editingTextNoteId || editingLabelNoteId);
 
@@ -100,10 +122,10 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
   const { draggingNoteId, isOverTrash, startDrag, getNotePosition } = useNoteDrag({
     boardRef,
-    trashRef,
+    trashRef: canDragDelete ? trashRef : undefined,
     disabled: isEditing,
     onMove: moveNote,
-    onDelete: deleteNote,
+    onDelete: canDragDelete ? deleteNote : undefined,
   });
 
   useEffect(() => {
@@ -513,36 +535,38 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         </div>
       </div>
 
-      <div
-        ref={trashRef}
-        className={[
-          styles.trashZone,
-          draggingNoteId ? styles.trashZoneActive : "",
-          isOverTrash ? styles.trashZoneHover : "",
-        ]
-          .filter(Boolean)
-          .join(" ")}
-        aria-label="拖到此处删除便签"
-      >
-        <svg
-          className={styles.trashIcon}
-          viewBox="0 0 24 24"
-          focusable="false"
-          aria-hidden="true"
+      {canDragDelete ? (
+        <div
+          ref={trashRef}
+          className={[
+            styles.trashZone,
+            draggingNoteId ? styles.trashZoneActive : "",
+            isOverTrash ? styles.trashZoneHover : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          aria-label="拖到此处删除便签"
         >
-          <g className={styles.trashLid}>
+          <svg
+            className={styles.trashIcon}
+            viewBox="0 0 24 24"
+            focusable="false"
+            aria-hidden="true"
+          >
+            <g className={styles.trashLid}>
+              <path
+                fill="currentColor"
+                d="M9.7 2.9h4.6c.45 0 .8.35.8.8V4.55H8.9V3.7c0-.45.35-.8.8-.8ZM5.35 4.55h13.3c.55 0 1 .45 1 1v.35c0 .28-.22.5-.5.5H4.85c-.28 0-.5-.22-.5-.5v-.35c0-.55.45-1 1-1Z"
+              />
+            </g>
             <path
               fill="currentColor"
-              d="M9.7 2.9h4.6c.45 0 .8.35.8.8V4.55H8.9V3.7c0-.45.35-.8.8-.8ZM5.35 4.55h13.3c.55 0 1 .45 1 1v.35c0 .28-.22.5-.5.5H4.85c-.28 0-.5-.22-.5-.5v-.35c0-.55.45-1 1-1Z"
+              fillRule="evenodd"
+              d="M5.55 7.85 6.55 19.9c.1 1.05.98 1.85 2.04 1.85h6.82c1.06 0 1.94-.8 2.04-1.85L18.45 7.85H5.55Zm3.05 2.35c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Z"
             />
-          </g>
-          <path
-            fill="currentColor"
-            fillRule="evenodd"
-            d="M5.55 7.85 6.55 19.9c.1 1.05.98 1.85 2.04 1.85h6.82c1.06 0 1.94-.8 2.04-1.85L18.45 7.85H5.55Zm3.05 2.35c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Z"
-          />
-        </svg>
-      </div>
+          </svg>
+        </div>
+      ) : null}
     </>
   );
 }
