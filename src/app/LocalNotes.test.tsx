@@ -1,11 +1,24 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
 import styles from "./page.module.css";
 import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 
 const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
+const PAGE_CSS = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "page.module.css"), "utf8");
+
+function cssRuleZIndex(className: string) {
+  const match = PAGE_CSS.match(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`));
+  const zIndex = match?.[1].match(/z-index:\s*(-?\d+)/)?.[1];
+  if (zIndex === undefined) {
+    throw new Error(`Expected .${className} to declare z-index`);
+  }
+  return Number.parseInt(zIndex, 10);
+}
 
 function mockViewport(isNarrow: boolean) {
   Object.defineProperty(window, "matchMedia", {
@@ -525,6 +538,17 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.getByLabelText("拖到此处删除便签")).toBeInTheDocument();
+  });
+
+  test("keeps the trash zone below notes and the toolbar", () => {
+    const trashZ = cssRuleZIndex("trashZone");
+    const noteZ = cssRuleZIndex("note");
+    const canvasZ = cssRuleZIndex("canvas");
+    const toolbarZ = cssRuleZIndex("noteToolbar");
+
+    expect(trashZ).toBeLessThan(noteZ);
+    expect(trashZ).toBeLessThan(canvasZ);
+    expect(trashZ).toBeLessThan(toolbarZ);
   });
 
   test("hides the trash drop zone on narrow viewports", () => {

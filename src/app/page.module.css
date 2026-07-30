@@ -38,6 +38,7 @@
 
 .canvas {
   position: relative;
+  z-index: 2;
   margin: 0 auto;
 }
 
@@ -45,6 +46,7 @@
   --note-accent: #ffe176;
   --note-color: #d35a16;
   position: absolute;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -125,6 +127,7 @@
   --note-accent: #ffe176;
   --note-color: #d35a16;
   position: absolute;
+  z-index: 2;
   display: flex;
   height: calc(5 * 34px);
   flex-direction: column;
@@ -550,7 +553,7 @@
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));
-  z-index: 20;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
