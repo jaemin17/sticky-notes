@@ -1,5 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { computeCanvasSize, findNewNotePlacement, migrationSlot, snapToCol } from "./notePlacement";
+import {
+  arrangeNotesByVisualOrder,
+  computeCanvasSize,
+  findNewNotePlacement,
+  migrationSlot,
+  snapToCol,
+} from "./notePlacement";
 import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN, type LocalNote } from "./noteTypes";
 
 describe("notePlacement", () => {
@@ -34,5 +40,32 @@ describe("notePlacement", () => {
     expect(placement.col).toBeGreaterThanOrEqual(0);
     expect(placement.row).toBeGreaterThanOrEqual(0);
     expect(placement.col * GRID).toBeLessThan(window.innerWidth);
+  });
+
+  test("arranges notes into a compact grid by visual order without changing labels", () => {
+    const notes: LocalNote[] = [
+      { id: "bottom-left", text: "b", tone: "yellow", label: "Custom B", col: 1, row: 16 },
+      { id: "top-right", text: "a", tone: "green", label: "A-2", col: 20, row: 2 },
+      { id: "top-left", text: "c", tone: "blue", label: "001", col: 3, row: 1 },
+    ];
+
+    const arranged = arrangeNotesByVisualOrder(notes);
+
+    expect(arranged.map((note) => note.id)).toEqual(["bottom-left", "top-right", "top-left"]);
+    expect(arranged.find((note) => note.id === "top-left")).toMatchObject({
+      label: "001",
+      col: 1,
+      row: 1,
+    });
+    expect(arranged.find((note) => note.id === "top-right")).toMatchObject({
+      label: "A-2",
+      col: 8,
+      row: 1,
+    });
+    expect(arranged.find((note) => note.id === "bottom-left")).toMatchObject({
+      label: "Custom B",
+      col: 1,
+      row: 7,
+    });
   });
 });

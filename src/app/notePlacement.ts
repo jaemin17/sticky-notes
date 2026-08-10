@@ -81,6 +81,31 @@ export function findNewNotePlacement(notes: LocalNote[], colSpan = NOTE_COL_SPAN
   return { col: centerCol, row: centerRow };
 }
 
+export function arrangeNotesByVisualOrder(notes: LocalNote[]): LocalNote[] {
+  if (notes.length <= 1) return notes;
+
+  const startCol = Math.min(...notes.map((note) => note.col));
+  const startRow = Math.min(...notes.map((note) => note.row));
+  const columnCount = Math.ceil(Math.sqrt(notes.length));
+  const sortedNotes = [...notes].sort((a, b) => {
+    if (a.row !== b.row) return a.row - b.row;
+    return a.col - b.col;
+  });
+  const nextPositions = new Map<string, { col: number; row: number }>();
+
+  sortedNotes.forEach((note, index) => {
+    nextPositions.set(note.id, {
+      col: startCol + (index % columnCount) * (NOTE_COL_SPAN + 1),
+      row: startRow + Math.floor(index / columnCount) * (NOTE_ROW_SPAN + 1),
+    });
+  });
+
+  return notes.map((note) => ({
+    ...note,
+    ...nextPositions.get(note.id),
+  }));
+}
+
 export function clampNotePosition(col: number, row: number): { col: number; row: number } {
   return {
     col: Math.max(0, col),

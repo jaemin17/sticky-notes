@@ -633,8 +633,8 @@
   bottom: calc(100% + 16px);
   z-index: 30;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 7px;
   padding: 8px;
   border: 1px solid rgba(17, 18, 23, 0.09);
   border-radius: 12px;
@@ -642,6 +642,41 @@
   box-shadow: 0 10px 24px rgba(17, 18, 23, 0.12);
   backdrop-filter: blur(14px);
   transform: translateX(-50%);
+}
+
+.toolbarActionMenu {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 100%;
+  min-width: 128px;
+}
+
+.toolbarActionButton {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(17, 18, 23, 0.12);
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(17, 18, 23, 0.58);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1;
+  transition: background 160ms ease, color 160ms ease, opacity 160ms ease;
+}
+
+.toolbarActionButton:hover:not(:disabled) {
+  border-color: rgba(17, 18, 23, 0.18);
+  background: rgba(17, 18, 23, 0.06);
+}
+
+.toolbarActionButton:disabled {
+  cursor: default;
+  opacity: 0.42;
 }
 
 .toolbarColorPopover::before {
@@ -664,6 +699,14 @@
   background: rgba(255, 255, 255, 0.94);
   content: "";
   transform: translateX(-50%) rotate(45deg);
+}
+
+.toolbarColorChoices {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .toolbarColorButton {
@@ -823,4 +866,3 @@
     left: 22px;
   }
 }
-

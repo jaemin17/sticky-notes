@@ -20,6 +20,14 @@ function cssRuleZIndex(className: string) {
   return Number.parseInt(zIndex, 10);
 }
 
+function cssRuleBody(className: string) {
+  const match = PAGE_CSS.match(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`));
+  if (!match) {
+    throw new Error(`Expected .${className} to exist`);
+  }
+  return match[1];
+}
+
 function mockViewport(isNarrow: boolean) {
   Object.defineProperty(window, "matchMedia", {
     configurable: true,
@@ -121,6 +129,86 @@ describe("LocalNotes", () => {
     expect(screen.queryByRole("button", { name: "综合样式写一张对比" })).not.toBeInTheDocument();
   });
 
+  test("keeps organize and clear inside the hover more menu", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    const toolbar = screen.getByRole("toolbar", { name: "新建便签工具栏" });
+    const moreMenu = screen.getByLabelText("更多操作");
+
+    expect(screen.queryByText("整理")).not.toBeInTheDocument();
+    expect(Array.from(toolbar.children)).toEqual([
+      screen.getByRole("button", { name: "写一张" }),
+      moreMenu,
+    ]);
+
+    await user.hover(moreMenu);
+
+    expect(screen.getByLabelText("更多操作选项")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "整理便签" })).toHaveTextContent("整理");
+    expect(screen.getByRole("button", { name: "清空所有便签" })).toHaveTextContent("清空");
+    expect(screen.getByRole("button", { name: "清空所有便签" }).className).not.toContain("toolbarDangerActionButton");
+    expect(cssRuleBody("toolbarActionButton")).toContain("border: 1px solid");
+    expect(cssRuleBody("toolbarActionButton")).toContain("color: rgba(17, 18, 23, 0.58);");
+    expect(cssRuleBody("toolbarActionMenu")).not.toContain("border-bottom");
+  });
+
+  test("organizes notes by visual position without changing editable labels", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([
+        { id: "note-bottom-left", text: "下面的", tone: "yellow", label: "自定义", col: 1, row: 16 },
+        { id: "note-top-right", text: "右上的", tone: "green", label: "B-7", col: 20, row: 2 },
+        { id: "note-top-left", text: "左上的", tone: "blue", label: "A1", col: 3, row: 1 },
+      ]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+
+    const topLeftNote = (await screen.findByText("左上的")).closest("section");
+    const topRightNote = screen.getByText("右上的").closest("section");
+    const bottomLeftNote = screen.getByText("下面的").closest("section");
+
+    await user.hover(screen.getByLabelText("更多操作"));
+    await user.click(screen.getByRole("button", { name: "整理便签" }));
+
+    expect(topLeftNote).toHaveStyle({ left: `${1 * GRID}px`, top: `${1 * GRID}px` });
+    expect(topRightNote).toHaveStyle({ left: `${8 * GRID}px`, top: `${1 * GRID}px` });
+    expect(bottomLeftNote).toHaveStyle({ left: `${1 * GRID}px`, top: `${7 * GRID}px` });
+
+    const stored = window.localStorage.getItem("sticky-notes.local-notes");
+    expect(stored).toContain('"label":"A1"');
+    expect(stored).toContain('"label":"B-7"');
+    expect(stored).toContain('"label":"自定义"');
+  });
+
+  test("clears all notes only after confirming from the more menu", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([
+        { id: "note-1", text: "第一条", tone: "yellow", label: "A1", col: 1, row: 1 },
+        { id: "note-2", text: "第二条", tone: "green", label: "B2", col: 8, row: 1 },
+      ]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    expect(await screen.findByText("第一条")).toBeInTheDocument();
+
+    await user.hover(screen.getByLabelText("更多操作"));
+    await user.click(screen.getByRole("button", { name: "清空所有便签" }));
+
+    expect(screen.getByRole("button", { name: "确认清空所有便签" })).toHaveTextContent("确认清空");
+    expect(screen.getByText("第一条")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "确认清空所有便签" }));
+
+    expect(screen.queryByText("第一条")).not.toBeInTheDocument();
+    expect(screen.queryByText("第二条")).not.toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toBe("[]");
+  });
+
   test("submits a note with Enter", async () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
@@ -148,7 +236,7 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.queryByLabelText("便签颜色")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "蓝色的新便签");
@@ -161,7 +249,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
 
@@ -174,17 +262,17 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     const addButton = screen.getByRole("button", { name: "写一张" });
-    const colorMenuButton = screen.getByRole("button", { name: "展开新便签颜色，当前黄色" });
+    const colorMenuButton = screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" });
     expect(addButton.className).toContain("yellow");
     expect(colorMenuButton).toHaveTextContent("...");
 
     await user.click(colorMenuButton);
-    expect(screen.getByLabelText("新便签颜色选项")).toBeInTheDocument();
+    expect(screen.getByLabelText("更多操作选项")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "选择粉色" }));
 
     expect(addButton.className).toContain("pink");
 
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前粉色" }));
+    await user.click(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色粉色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
 
     expect(addButton.className).toContain("blue");
@@ -194,7 +282,7 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" }));
     await user.click(screen.getByRole("button", { name: "选择粉色" }));
     await user.click(screen.getByRole("button", { name: "写一张" }));
     await user.type(screen.getByLabelText("编辑便签"), "粉色的新便签");
@@ -208,13 +296,13 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    expect(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "选择蓝色" })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "展开新便签颜色，当前黄色" }));
+    await user.click(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" }));
     await user.click(screen.getByRole("button", { name: "选择蓝色" }));
 
-    expect(screen.getByRole("button", { name: "展开新便签颜色，当前蓝色" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "展开更多操作，当前新便签颜色蓝色" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "选择绿色" })).not.toBeInTheDocument();
   });
 
@@ -222,15 +310,15 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    const colorMenu = screen.getByLabelText("选择新便签颜色");
-    expect(screen.queryByLabelText("新便签颜色选项")).not.toBeInTheDocument();
+    const colorMenu = screen.getByLabelText("更多操作");
+    expect(screen.queryByLabelText("更多操作选项")).not.toBeInTheDocument();
 
     await user.hover(colorMenu);
-    expect(screen.getByLabelText("新便签颜色选项")).toBeInTheDocument();
+    expect(screen.getByLabelText("更多操作选项")).toBeInTheDocument();
 
     await user.unhover(colorMenu);
     await waitFor(() => {
-      expect(screen.queryByLabelText("新便签颜色选项")).not.toBeInTheDocument();
+      expect(screen.queryByLabelText("更多操作选项")).not.toBeInTheDocument();
     });
   });
 
@@ -238,12 +326,12 @@ describe("LocalNotes", () => {
     const user = userEvent.setup();
     render(<LocalNotes initialIndex={0} />);
 
-    const colorMenuButton = screen.getByRole("button", { name: "展开新便签颜色，当前黄色" });
+    const colorMenuButton = screen.getByRole("button", { name: "展开更多操作，当前新便签颜色黄色" });
     await user.click(colorMenuButton);
-    expect(screen.getByLabelText("新便签颜色选项")).toBeInTheDocument();
+    expect(screen.getByLabelText("更多操作选项")).toBeInTheDocument();
 
     await user.click(colorMenuButton);
-    expect(screen.getByLabelText("新便签颜色选项")).toBeInTheDocument();
+    expect(screen.getByLabelText("更多操作选项")).toBeInTheDocument();
   });
 
   test("keeps a blank new note on blur", async () => {

@@ -2,7 +2,7 @@
 
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import styles from "./page.module.css";
-import { computeCanvasSize, findNewNotePlacement } from "./notePlacement";
+import { arrangeNotesByVisualOrder, computeCanvasSize, findNewNotePlacement } from "./notePlacement";
 import { readStoredNotes, writeStoredNotes } from "./noteStorage";
 import {
   defaultNoteLabel,
@@ -49,6 +49,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
+  const [isClearAllConfirming, setIsClearAllConfirming] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
   const [emptyNotePlacement, setEmptyNotePlacement] = useState({ col: 0, row: 0 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -76,6 +77,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     }
     toolbarColorCloseTimeoutRef.current = window.setTimeout(() => {
       setIsToolbarColorMenuOpen(false);
+      setIsClearAllConfirming(false);
       toolbarColorCloseTimeoutRef.current = null;
     }, 120);
   }
@@ -86,6 +88,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
       toolbarColorCloseTimeoutRef.current = null;
     }
     setIsToolbarColorMenuOpen(false);
+    setIsClearAllConfirming(false);
   }
 
   function clearEmptyStateTimer() {
@@ -252,6 +255,24 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
       currentNotes.map((note) => (note.id === noteId ? { ...note, tone } : note)),
     );
     setOpenMenuNoteId(null);
+  }
+
+  function organizeNotes() {
+    setNotes((currentNotes) => arrangeNotesByVisualOrder(currentNotes));
+    setEditingTextNoteId(null);
+    setEditingLabelNoteId(null);
+    setOpenMenuNoteId(null);
+    setIsClearAllConfirming(false);
+  }
+
+  function clearAllNotes() {
+    clearEmptyStateTimer();
+    setNotes([]);
+    setEmptyStatePhase("visible");
+    setEditingTextNoteId(null);
+    setEditingLabelNoteId(null);
+    setOpenMenuNoteId(null);
+    closeToolbarColorMenu();
   }
 
   function isInteractiveDragTarget(target: EventTarget | null) {
@@ -500,7 +521,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         </button>
         <div
           className={styles.toolbarColorMenu}
-          aria-label="选择新便签颜色"
+          aria-label="更多操作"
           onMouseEnter={openToolbarColorMenu}
           onMouseLeave={scheduleCloseToolbarColorMenu}
         >
@@ -508,28 +529,56 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             className={styles.toolbarMenuButton}
             type="button"
             onClick={openToolbarColorMenu}
-            aria-label={`展开新便签颜色，当前${TONE_LABELS[newNoteTone]}`}
+            aria-label={`展开更多操作，当前新便签颜色${TONE_LABELS[newNoteTone]}`}
             aria-expanded={isToolbarColorMenuOpen}
           >
             <span className={styles.toolbarMenuDots}>...</span>
           </button>
           {isToolbarColorMenuOpen ? (
-            <div className={styles.toolbarColorPopover} aria-label="新便签颜色选项">
-              {toolbarToneOptions.map((tone) => (
+            <div className={styles.toolbarColorPopover} aria-label="更多操作选项">
+              <div className={styles.toolbarActionMenu}>
                 <button
-                  key={tone}
-                  className={`${styles.toolbarColorButton} ${styles[tone]}`}
+                  className={styles.toolbarActionButton}
+                  type="button"
+                  onClick={organizeNotes}
+                  disabled={notes.length <= 1}
+                  aria-label="整理便签"
+                >
+                  整理
+                </button>
+                <button
+                  className={styles.toolbarActionButton}
                   type="button"
                   onClick={() => {
-                    setNewNoteTone(tone);
-                    closeToolbarColorMenu();
+                    if (isClearAllConfirming) {
+                      clearAllNotes();
+                      return;
+                    }
+                    setIsClearAllConfirming(true);
                   }}
-                  aria-label={`选择${TONE_LABELS[tone]}`}
-                  aria-pressed={newNoteTone === tone}
+                  disabled={notes.length === 0}
+                  aria-label={isClearAllConfirming ? "确认清空所有便签" : "清空所有便签"}
                 >
-                  <span className={styles.noteColorDot} aria-hidden="true" />
+                  {isClearAllConfirming ? "确认清空" : "清空"}
                 </button>
-              ))}
+              </div>
+              <div className={styles.toolbarColorChoices} aria-label="新便签颜色选项">
+                {toolbarToneOptions.map((tone) => (
+                  <button
+                    key={tone}
+                    className={`${styles.toolbarColorButton} ${styles[tone]}`}
+                    type="button"
+                    onClick={() => {
+                      setNewNoteTone(tone);
+                      closeToolbarColorMenu();
+                    }}
+                    aria-label={`选择${TONE_LABELS[tone]}`}
+                    aria-pressed={newNoteTone === tone}
+                  >
+                    <span className={styles.noteColorDot} aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
             </div>
           ) : null}
         </div>
