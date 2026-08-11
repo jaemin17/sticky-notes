@@ -34,12 +34,12 @@ export function sanitizeNoteLabel(value: string): string {
 export const NOTE_TONES: NoteTone[] = ["yellow", "green", "blue", "purple", "orange", "pink"];
 
 export const TONE_LABELS: Record<NoteTone, string> = {
-  yellow: "黄色",
-  green: "绿色",
-  blue: "蓝色",
-  purple: "紫色",
-  orange: "橙色",
-  pink: "粉色",
+  yellow: "yellow",
+  green: "green",
+  blue: "blue",
+  purple: "purple",
+  orange: "orange",
+  pink: "pink",
 };
 
 export const STORAGE_KEY = "sticky-notes.local-notes";

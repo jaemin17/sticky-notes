@@ -789,9 +789,9 @@
     linear-gradient(180deg, var(--button-gradient-start, rgba(255, 246, 248, 0.96)), var(--button-gradient-end, rgba(247, 223, 226, 0.92)));
   color: var(--button-text, #2a2426);
   cursor: pointer;
-  font: inherit;
+  font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 650;
   line-height: 1;
   box-shadow:
     var(--button-shadow-soft, rgba(185, 186, 213, 0.2)) 0 2px 10px,

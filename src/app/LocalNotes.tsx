@@ -318,7 +318,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           width: canvasSize.cols * GRID,
           height: canvasSize.rows * GRID,
         }}
-        aria-label="便签画布"
+        aria-label="Sticky notes canvas"
       >
         {shouldShowEmptyState ? (
           <button
@@ -332,7 +332,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             }}
             onClick={createBlankNote}
             onAnimationEnd={() => setEmptyStatePhase("visible")}
-            aria-label="开始写第一条便签"
+            aria-label="Start your first note"
           >
             <div className={styles.emptyStateHeader}>
               <span className={styles.emptyStateGrip} aria-hidden="true">
@@ -340,12 +340,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               </span>
               <span className={styles.emptyStateLabel}>001</span>
             </div>
-            <p className={styles.emptyStateText}>写下一条只给自己看的便签...</p>
+            <p className={styles.emptyStateText}>Write a note just for yourself...</p>
           </button>
         ) : null}
         {notes.map((note, noteIndex) => {
           const noteTitle = note.label.trim() || defaultNoteLabel(noteIndex, initialIndex);
-          const noteLabel = note.text.trim() || noteTitle || "新便签";
+          const noteLabel = note.text.trim() || noteTitle || "New note";
           const { col, row } = getNotePosition(note);
           const isEditingText = editingTextNoteId === note.id;
           const isEditingLabel = editingLabelNoteId === note.id;
@@ -364,7 +364,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                 height: NOTE_ROW_SPAN * GRID,
                 zIndex: isDragging ? 100 : undefined,
               }}
-              aria-label={`${note.text.trim() ? "我的便签" : "新便签"}：${noteLabel}，拖动空白区域可移动`}
+              aria-label={`${note.text.trim() ? "My note" : "New note"}: ${noteLabel}, drag empty space to move`}
               aria-grabbed={isDragging}
               role="article"
               onPointerDown={(event) => handleNotePointerDown(event, note)}
@@ -395,7 +395,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                       if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
                       finishEditingLabel(note.id, event.currentTarget.value, noteIndex);
                     }}
-                    aria-label="编辑便签编号"
+                    aria-label="Edit note label"
                   />
                 ) : (
                   <button
@@ -407,7 +407,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                       setEditingTextNoteId(null);
                       setOpenMenuNoteId(null);
                     }}
-                    aria-label={`编辑便签编号：${noteTitle}`}
+                    aria-label={`Edit note label: ${noteTitle}`}
                   >
                     <span className={styles.noteIndex}>{noteTitle}</span>
                   </button>
@@ -422,21 +422,21 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                     className={styles.noteMenuButton}
                     type="button"
                     onClick={() => setOpenMenuNoteId((currentId) => (currentId === note.id ? null : note.id))}
-                    aria-label={`更多操作：${noteLabel}`}
+                    aria-label={`More actions: ${noteLabel}`}
                     aria-expanded={openMenuNoteId === note.id}
                   >
                     ...
                   </button>
                   {openMenuNoteId === note.id ? (
                     <div className={styles.noteActionMenu}>
-                      <div className={styles.noteColorMenu} aria-label={`修改颜色：${noteLabel}`}>
+                      <div className={styles.noteColorMenu} aria-label={`Change color: ${noteLabel}`}>
                         {NOTE_TONES.map((tone) => (
                           <button
                             key={tone}
                             className={`${styles.noteColorButton} ${styles[tone]}`}
                             type="button"
                             onClick={() => updateNoteTone(note.id, tone)}
-                            aria-label={`改为${TONE_LABELS[tone]}：${noteLabel}`}
+                            aria-label={`Change to ${TONE_LABELS[tone]}: ${noteLabel}`}
                             aria-pressed={note.tone === tone}
                           >
                             <span className={styles.noteColorDot} aria-hidden="true" />
@@ -447,9 +447,9 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                         className={styles.deleteNoteButton}
                         type="button"
                         onClick={() => deleteNote(note.id)}
-                        aria-label={`删除便签：${noteLabel}`}
+                        aria-label={`Delete note: ${noteLabel}`}
                       >
-                        删除
+                        Delete
                       </button>
                     </div>
                   ) : null}
@@ -476,8 +476,8 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                         if (event.currentTarget.closest("article")?.contains(event.relatedTarget)) return;
                         finishEditingText(note.id);
                       }}
-                      aria-label="编辑便签"
-                      placeholder="写下一条只给自己看的便签..."
+                      aria-label="Edit note"
+                      placeholder="Write a note just for yourself..."
                     />
                   ) : (
                     <button
@@ -489,12 +489,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                         setEditingLabelNoteId(null);
                         setOpenMenuNoteId(null);
                       }}
-                      aria-label={`编辑便签：${note.text.trim() || "空白便签"}`}
+                      aria-label={`Edit note: ${note.text.trim() || "Blank note"}`}
                     >
                       <span
                         className={`${styles.noteText} ${note.text.trim() ? "" : styles.noteTextPlaceholder}`}
                       >
-                        {note.text.trim() || "写下一条只给自己看的便签..."}
+                        {note.text.trim() || "Write a note just for yourself..."}
                       </span>
                     </button>
                   )}
@@ -505,23 +505,23 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         })}
       </div>
 
-      <div className={styles.noteToolbar} role="toolbar" aria-label="新建便签工具栏">
+      <div className={styles.noteToolbar} role="toolbar" aria-label="New note toolbar">
         <button
           className={`${styles.addNoteButton} ${styles[newNoteTone]}`}
           type="button"
           onClick={createBlankNote}
-          aria-label="写一张"
+          aria-label="New note"
         >
           <span className={styles.addNoteButtonLineIcon} aria-hidden="true">
             <svg viewBox="0 0 24 24" focusable="false">
               <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
             </svg>
           </span>
-          <span>写一张</span>
+          <span>New note</span>
         </button>
         <div
           className={styles.toolbarColorMenu}
-          aria-label="更多操作"
+          aria-label="More actions"
           onMouseEnter={openToolbarColorMenu}
           onMouseLeave={scheduleCloseToolbarColorMenu}
         >
@@ -529,22 +529,22 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             className={styles.toolbarMenuButton}
             type="button"
             onClick={openToolbarColorMenu}
-            aria-label={`展开更多操作，当前新便签颜色${TONE_LABELS[newNoteTone]}`}
+            aria-label={`Open more actions, current new note color is ${TONE_LABELS[newNoteTone]}`}
             aria-expanded={isToolbarColorMenuOpen}
           >
             <span className={styles.toolbarMenuDots}>...</span>
           </button>
           {isToolbarColorMenuOpen ? (
-            <div className={styles.toolbarColorPopover} aria-label="更多操作选项">
+            <div className={styles.toolbarColorPopover} aria-label="More actions options">
               <div className={styles.toolbarActionMenu}>
                 <button
                   className={styles.toolbarActionButton}
                   type="button"
                   onClick={organizeNotes}
                   disabled={notes.length <= 1}
-                  aria-label="整理便签"
+                  aria-label="Organize notes"
                 >
-                  整理
+                  Organize
                 </button>
                 <button
                   className={styles.toolbarActionButton}
@@ -557,12 +557,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                     setIsClearAllConfirming(true);
                   }}
                   disabled={notes.length === 0}
-                  aria-label={isClearAllConfirming ? "确认清空所有便签" : "清空所有便签"}
+                  aria-label={isClearAllConfirming ? "Confirm clearing all notes" : "Clear all notes"}
                 >
-                  {isClearAllConfirming ? "确认清空" : "清空"}
+                  {isClearAllConfirming ? "Confirm clear" : "Clear"}
                 </button>
               </div>
-              <div className={styles.toolbarColorChoices} aria-label="新便签颜色选项">
+              <div className={styles.toolbarColorChoices} aria-label="New note color options">
                 {toolbarToneOptions.map((tone) => (
                   <button
                     key={tone}
@@ -572,7 +572,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                       setNewNoteTone(tone);
                       closeToolbarColorMenu();
                     }}
-                    aria-label={`选择${TONE_LABELS[tone]}`}
+                    aria-label={`Select ${TONE_LABELS[tone]}`}
                     aria-pressed={newNoteTone === tone}
                   >
                     <span className={styles.noteColorDot} aria-hidden="true" />
@@ -594,7 +594,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           ]
             .filter(Boolean)
             .join(" ")}
-          aria-label="拖到此处删除便签"
+          aria-label="Drag here to delete note"
         >
           <svg
             className={styles.trashIcon}

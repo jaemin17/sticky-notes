@@ -26,8 +26,8 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "我的便签网站",
-  description: "一个使用 Next.js 和 GitHub Pages 发布的便签网站练习项目。",
+  title: "My Sticky Notes",
+  description: "A sticky notes practice project built with Next.js and published on GitHub Pages.",
 };
 
 export default function RootLayout({
@@ -37,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="zh-CN"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${kalam.variable} ${figtree.variable}`}
     >
       <body>{children}</body>
