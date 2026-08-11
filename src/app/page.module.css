@@ -11,10 +11,20 @@
   background-size: 34px 34px;
 }
 
-.dateStamp {
+.dateStampGroup {
   position: absolute;
   top: 22px;
   left: 32px;
+  z-index: 4;
+}
+
+.dateStampRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.dateStamp {
   color: rgba(17, 18, 23, 0.62);
   font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
   font-size: 16px;
@@ -27,6 +37,63 @@
 .dateStamp em {
   font-style: italic;
   font-weight: inherit;
+}
+
+.dateStorageHelpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 23px;
+  height: 23px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(17, 18, 23, 0.42);
+  cursor: pointer;
+  padding: 0;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.dateStorageHelpButton:hover,
+.dateStorageHelpButton[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.46);
+  color: rgba(17, 18, 23, 0.58);
+}
+
+.dateStorageHelpIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.dateStorageHelpPanel {
+  display: grid;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  margin-top: 9px;
+  padding: 9px 11px;
+  border: 1px solid rgba(17, 18, 23, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(17, 18, 23, 0.1);
+  color: rgba(17, 18, 23, 0.64);
+  font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.dateStorageHelpPanel p {
+  display: grid;
+  gap: 2px;
+}
+
+.dateStorageHelpPanel strong {
+  color: rgba(17, 18, 23, 0.72);
+  font-weight: 650;
 }
 
 .board {
@@ -862,7 +929,7 @@
     padding-right: 16px;
   }
 
-  .dateStamp {
+  .dateStampGroup {
     left: 22px;
   }
 }

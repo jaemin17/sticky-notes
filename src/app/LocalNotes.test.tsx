@@ -153,6 +153,15 @@ describe("LocalNotes", () => {
     expect(cssRuleBody("toolbarActionMenu")).not.toContain("border-bottom");
   });
 
+  test("keeps storage help out of the more menu", async () => {
+    const user = userEvent.setup();
+    render(<LocalNotes initialIndex={0} />);
+
+    await user.hover(screen.getByLabelText("More actions"));
+
+    expect(screen.queryByRole("button", { name: "Storage help" })).not.toBeInTheDocument();
+  });
+
   test("organizes notes by visual position without changing editable labels", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(
