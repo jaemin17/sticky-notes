@@ -49,7 +49,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [openMenuNoteId, setOpenMenuNoteId] = useState<string | null>(null);
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
-  const [isClearAllConfirming, setIsClearAllConfirming] = useState(false);
+  const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
   const [emptyNotePlacement, setEmptyNotePlacement] = useState({ col: 0, row: 0 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -77,7 +77,6 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     }
     toolbarColorCloseTimeoutRef.current = window.setTimeout(() => {
       setIsToolbarColorMenuOpen(false);
-      setIsClearAllConfirming(false);
       toolbarColorCloseTimeoutRef.current = null;
     }, 120);
   }
@@ -88,7 +87,6 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
       toolbarColorCloseTimeoutRef.current = null;
     }
     setIsToolbarColorMenuOpen(false);
-    setIsClearAllConfirming(false);
   }
 
   function clearEmptyStateTimer() {
@@ -262,7 +260,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setEditingTextNoteId(null);
     setEditingLabelNoteId(null);
     setOpenMenuNoteId(null);
-    setIsClearAllConfirming(false);
+    setIsClearAllDialogOpen(false);
   }
 
   function clearAllNotes() {
@@ -272,7 +270,24 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setEditingTextNoteId(null);
     setEditingLabelNoteId(null);
     setOpenMenuNoteId(null);
+    setIsClearAllDialogOpen(false);
     closeToolbarColorMenu();
+  }
+
+  function requestClearAllNotes() {
+    closeToolbarColorMenu();
+    setIsClearAllDialogOpen(true);
+  }
+
+  function closeClearAllDialog() {
+    setIsClearAllDialogOpen(false);
+  }
+
+  function handleClearAllDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Escape") return;
+
+    event.preventDefault();
+    closeClearAllDialog();
   }
 
   function isInteractiveDragTarget(target: EventTarget | null) {
@@ -549,17 +564,11 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                 <button
                   className={styles.toolbarActionButton}
                   type="button"
-                  onClick={() => {
-                    if (isClearAllConfirming) {
-                      clearAllNotes();
-                      return;
-                    }
-                    setIsClearAllConfirming(true);
-                  }}
+                  onClick={requestClearAllNotes}
                   disabled={notes.length === 0}
-                  aria-label={isClearAllConfirming ? "Confirm clearing all notes" : "Clear all notes"}
+                  aria-label="Clear all notes"
                 >
-                  {isClearAllConfirming ? "Confirm clear" : "Clear"}
+                  Clear
                 </button>
               </div>
               <div className={styles.toolbarColorChoices} aria-label="New note color options">
@@ -614,6 +623,41 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               d="M5.55 7.85 6.55 19.9c.1 1.05.98 1.85 2.04 1.85h6.82c1.06 0 1.94-.8 2.04-1.85L18.45 7.85H5.55Zm3.05 2.35c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Z"
             />
           </svg>
+        </div>
+      ) : null}
+
+      {isClearAllDialogOpen ? (
+        <div
+          className={styles.clearAllDialogBackdrop}
+          onClick={closeClearAllDialog}
+          onKeyDown={handleClearAllDialogKeyDown}
+        >
+          <div
+            className={styles.clearAllDialog}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="clear-all-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="clear-all-dialog-title">Delete all notes?</h2>
+            <p>This will remove every note from this browser.</p>
+            <div className={styles.clearAllDialogActions}>
+              <button
+                className={styles.clearAllDialogCancelButton}
+                type="button"
+                onClick={closeClearAllDialog}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.clearAllDialogDeleteButton}
+                type="button"
+                onClick={clearAllNotes}
+              >
+                Delete all
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </>

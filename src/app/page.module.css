@@ -841,6 +841,86 @@
     radial-gradient(circle at 15px 50%, currentColor 0 1.6px, transparent 1.7px);
 }
 
+.clearAllDialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(17, 18, 23, 0.14);
+  backdrop-filter: blur(2px);
+}
+
+.clearAllDialog {
+  width: min(312px, 100%);
+  padding: 16px;
+  border: 1px solid rgba(17, 18, 23, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 16px 34px rgba(17, 18, 23, 0.16);
+  color: rgba(17, 18, 23, 0.7);
+  font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.clearAllDialog h2 {
+  margin: 0;
+  color: rgba(17, 18, 23, 0.76);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.clearAllDialog p {
+  margin: 7px 0 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.clearAllDialogActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.clearAllDialogCancelButton,
+.clearAllDialogDeleteButton {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(17, 18, 23, 0.12);
+  border-radius: 7px;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.clearAllDialogCancelButton {
+  color: rgba(17, 18, 23, 0.58);
+}
+
+.clearAllDialogCancelButton:hover {
+  border-color: rgba(17, 18, 23, 0.18);
+  background: rgba(17, 18, 23, 0.06);
+}
+
+.clearAllDialogDeleteButton {
+  border-color: rgba(205, 91, 91, 0.22);
+  color: #b95252;
+}
+
+.clearAllDialogDeleteButton:hover {
+  border-color: rgba(205, 91, 91, 0.32);
+  background: rgba(205, 91, 91, 0.08);
+  color: #a94848;
+}
+
 .addNoteButton {
   display: inline-flex;
   align-items: center;
@@ -858,7 +938,7 @@
   cursor: pointer;
   font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
   font-size: 15px;
-  font-weight: 650;
+  font-weight: 500;
   line-height: 1;
   box-shadow:
     var(--button-shadow-soft, rgba(185, 186, 213, 0.2)) 0 2px 10px,

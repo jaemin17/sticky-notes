@@ -127,6 +127,7 @@ describe("LocalNotes", () => {
     expect(screen.getAllByRole("button", { name: "New note" })).toHaveLength(1);
     expect(screen.queryByRole("button", { name: "Old add note comparison" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Combined add note comparison" })).not.toBeInTheDocument();
+    expect(cssRuleBody("addNoteButton")).toContain("font-weight: 500;");
   });
 
   test("keeps organize and clear inside the hover more menu", async () => {
@@ -192,7 +193,7 @@ describe("LocalNotes", () => {
     expect(stored).toContain('"label":"自定义"');
   });
 
-  test("clears all notes only after confirming from the more menu", async () => {
+  test("clears all notes only after confirming in a dialog", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(
       "sticky-notes.local-notes",
@@ -208,10 +209,11 @@ describe("LocalNotes", () => {
     await user.hover(screen.getByLabelText("More actions"));
     await user.click(screen.getByRole("button", { name: "Clear all notes" }));
 
-    expect(screen.getByRole("button", { name: "Confirm clearing all notes" })).toHaveTextContent("Confirm clear");
+    expect(screen.getByRole("dialog", { name: "Delete all notes?" })).toBeInTheDocument();
+    expect(screen.getByText("This will remove every note from this browser.")).toBeInTheDocument();
     expect(screen.getByText("第一条")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Confirm clearing all notes" }));
+    await user.click(screen.getByRole("button", { name: "Delete all" }));
 
     expect(screen.queryByText("第一条")).not.toBeInTheDocument();
     expect(screen.queryByText("第二条")).not.toBeInTheDocument();
