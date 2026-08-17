@@ -655,19 +655,35 @@ describe("LocalNotes", () => {
     expect(LOCAL_NOTES_TSX).toContain("M5.1 10h13.8c.77 0 1.4.63 1.4 1.4");
   });
 
+  test("uses split archive folder parts for the open hover shape", () => {
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveTopClosed}");
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveFrontClosed}");
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveTopOpen}");
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveFrontOpen}");
+    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55c0-.72.58-1.3 1.3-1.3");
+    expect(LOCAL_NOTES_TSX).toContain("M8.02 9.72h11.76");
+  });
+
   test("keeps archive default color aligned with the trash zone without hover", () => {
     expect(cssRuleBody("archiveZone")).toContain("color: #eadfcd;");
     expect(PAGE_CSS).not.toMatch(/\.archiveZoneHasNotes\s*\{[^}]*color:/);
   });
 
   test("uses a blue folder color for opening archive hover", () => {
-    expect(cssRuleBody("archiveZone:hover")).toContain("color: #4f9fe8;");
+    expect(cssRuleBody("archiveZone:hover")).toContain("color: #78bdf2;");
     expect(cssRuleBody("archiveZone:hover")).not.toContain("#b9a98c");
-    expect(PAGE_CSS).not.toContain(".archiveZone:hover .archiveIcon");
-    expect(cssRuleBody("archiveZoneHover")).toContain("#4f9fe8");
+    expect(cssRuleBody("archiveZoneHover")).toContain("#78bdf2");
     expect(cssRuleBody("archiveZoneHover")).not.toContain("#16884b");
-    expect(PAGE_CSS).not.toContain(".archiveZoneHover .archiveIcon");
     expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon");
+  });
+
+  test("opens the archive folder with the same shape on hover and drag hit", () => {
+    expect(cssRuleBody("archiveTopOpen")).toContain("opacity: 0;");
+    expect(cssRuleBody("archiveFrontOpen")).toContain("opacity: 0;");
+    expect(cssRuleBody("archiveZone:hover .archiveTopOpen")).toContain("transform: translateY(-0.6px) scale(1);");
+    expect(cssRuleBody("archiveZoneHover .archiveTopOpen")).toContain("transform: translateY(-0.6px) scale(1);");
+    expect(cssRuleBody("archiveZone:hover .archiveFrontOpen")).toContain("transform: translateY(-0.5px) scale(1);");
+    expect(cssRuleBody("archiveZoneHover .archiveFrontOpen")).toContain("transform: translateY(-0.5px) scale(1);");
   });
 
   test("keeps archive count out of the folder icon", () => {
