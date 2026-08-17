@@ -10,6 +10,7 @@ import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 
 const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
 const PAGE_CSS = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "page.module.css"), "utf8");
+const LOCAL_NOTES_TSX = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "LocalNotes.tsx"), "utf8");
 
 function cssRuleZIndex(className: string) {
   const match = PAGE_CSS.match(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`));
@@ -639,6 +640,41 @@ describe("LocalNotes", () => {
     expect(screen.getByLabelText("Drag here to delete note")).toBeInTheDocument();
   });
 
+  test("shows an archive drop zone in the bottom-left corner", () => {
+    render(<LocalNotes initialIndex={0} />);
+
+    expect(screen.getByLabelText("Open archived notes")).toBeInTheDocument();
+  });
+
+  test("matches archive drop zone scale with the trash drop zone", () => {
+    expect(cssRuleBody("archiveZone")).toContain("width: 148px;");
+    expect(cssRuleBody("archiveZone")).toContain("height: 148px;");
+    expect(cssRuleBody("archiveIcon")).toContain("width: 66px;");
+    expect(cssRuleBody("archiveIcon")).toContain("height: 66px;");
+    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55");
+    expect(LOCAL_NOTES_TSX).toContain("M5.1 10h13.8c.77 0 1.4.63 1.4 1.4");
+  });
+
+  test("keeps archive default color aligned with the trash zone without hover", () => {
+    expect(cssRuleBody("archiveZone")).toContain("color: #eadfcd;");
+    expect(PAGE_CSS).not.toMatch(/\.archiveZoneHasNotes\s*\{[^}]*color:/);
+  });
+
+  test("uses a blue folder color for opening archive hover", () => {
+    expect(cssRuleBody("archiveZone:hover")).toContain("color: #4f9fe8;");
+    expect(cssRuleBody("archiveZone:hover")).not.toContain("#b9a98c");
+    expect(PAGE_CSS).not.toContain(".archiveZone:hover .archiveIcon");
+    expect(cssRuleBody("archiveZoneHover")).toContain("#4f9fe8");
+    expect(cssRuleBody("archiveZoneHover")).not.toContain("#16884b");
+    expect(PAGE_CSS).not.toContain(".archiveZoneHover .archiveIcon");
+    expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon");
+  });
+
+  test("keeps archive count out of the folder icon", () => {
+    expect(LOCAL_NOTES_TSX).not.toContain("archiveCount");
+    expect(PAGE_CSS).not.toContain(".archiveCount");
+  });
+
   test("keeps the trash zone below notes and the toolbar", () => {
     const trashZ = cssRuleZIndex("trashZone");
     const noteZ = cssRuleZIndex("note");
@@ -655,6 +691,90 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.queryByLabelText("Drag here to delete note")).not.toBeInTheDocument();
+  });
+
+  test("archives a note when a card corner enters the archive zone and restores it from the drawer", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "sticky-notes.local-notes",
+      JSON.stringify([{ id: "note-1", text: "先收起来", tone: "yellow", label: "001", col: 2, row: 2 }]),
+    );
+
+    render(<LocalNotes initialIndex={0} />);
+    const note = (await screen.findByText("先收起来")).closest("section");
+    const archive = screen.getByLabelText("Open archived notes");
+    expect(note).toBeTruthy();
+
+    const canvas = note?.parentElement;
+    const canvasRectSpy = vi.spyOn(canvas as HTMLElement, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 0,
+      left: 0,
+      top: 0,
+      width: 1200,
+      height: 800,
+      right: 1200,
+      bottom: 800,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    const archiveRectSpy = vi.spyOn(archive, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 700,
+      left: 0,
+      top: 700,
+      width: 96,
+      height: 96,
+      right: 116,
+      bottom: 796,
+      toJSON: () => ({}),
+    } as DOMRect);
+
+    Object.defineProperty(note as HTMLElement, "setPointerCapture", {
+      configurable: true,
+      value: vi.fn(),
+    });
+
+    fireEvent.pointerDown(note as HTMLElement, {
+      pointerId: 1,
+      clientX: 120,
+      clientY: 110,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerMove(window, {
+      pointerId: 1,
+      clientX: -70,
+      clientY: 586,
+      button: 0,
+      buttons: 1,
+      pointerType: "mouse",
+    });
+    fireEvent.pointerUp(window, {
+      pointerId: 1,
+      clientX: -70,
+      clientY: 586,
+      button: 0,
+      buttons: 0,
+      pointerType: "mouse",
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText("先收起来")).not.toBeInTheDocument();
+    });
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).toContain('"archivedAt":');
+
+    await user.click(screen.getByRole("button", { name: "Open archived notes" }));
+    expect(screen.getByRole("dialog", { name: "Archived notes (1)" })).toBeInTheDocument();
+    expect(screen.getByText("先收起来")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Restore note: 先收起来" }));
+    expect(await screen.findByRole("article", { name: /先收起来/ })).toBeInTheDocument();
+    expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain('"archivedAt":');
+
+    canvasRectSpy.mockRestore();
+    archiveRectSpy.mockRestore();
   });
 
   test("deletes a note when a card corner enters the trash zone", async () => {

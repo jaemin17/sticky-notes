@@ -21,6 +21,27 @@ describe("noteStorage", () => {
     expect(migrated[0]).toMatchObject({ col: 12, row: 4, label: "A1" });
   });
 
+  test("keeps archived notes marked as archived", () => {
+    const migrated = migrateStoredNotes([
+      {
+        id: "note-1",
+        text: "收起来的内容",
+        tone: "purple",
+        col: 12,
+        row: 4,
+        label: "A1",
+        archivedAt: "2026-08-17T10:00:00.000Z",
+      },
+    ]);
+
+    expect(migrated[0]).toMatchObject({
+      col: 12,
+      row: 4,
+      label: "A1",
+      archivedAt: "2026-08-17T10:00:00.000Z",
+    });
+  });
+
   test("assigns default labels when coordinates exist but label is missing", () => {
     const migrated = migrateStoredNotes([
       { id: "note-1", text: "有坐标", tone: "yellow", col: 3, row: 2 },

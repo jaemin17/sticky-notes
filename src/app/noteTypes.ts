@@ -21,6 +21,7 @@ export type LocalNote = {
   tone: NoteTone;
   col: number;
   row: number;
+  archivedAt?: string;
 };
 
 export function defaultNoteLabel(index: number, initialIndex = 0): string {

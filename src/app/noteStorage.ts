@@ -14,6 +14,7 @@ type StoredNote = {
   tone?: unknown;
   col?: unknown;
   row?: unknown;
+  archivedAt?: unknown;
 };
 
 function hasValidPosition(note: StoredNote): note is StoredNote & { col: number; row: number } {
@@ -26,18 +27,26 @@ function parseLabel(value: unknown): string | null {
   return label.length > 0 ? label : null;
 }
 
+function parseArchivedAt(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const archivedAt = value.trim();
+  return archivedAt.length > 0 ? archivedAt : null;
+}
+
 function parseBaseNote(note: StoredNote): Omit<LocalNote, "col" | "row" | "label"> & { label?: string } | null {
   if (typeof note.id !== "string" || typeof note.text !== "string" || !isNoteTone(note.tone)) {
     return null;
   }
 
   const label = parseLabel(note.label);
+  const archivedAt = parseArchivedAt(note.archivedAt);
 
   return {
     id: note.id,
     text: note.text,
     tone: note.tone,
     ...(label ? { label } : {}),
+    ...(archivedAt ? { archivedAt } : {}),
   };
 }
 
@@ -111,13 +120,14 @@ export function readStoredNotes(initialIndex = 0): LocalNote[] {
 }
 
 export function writeStoredNotes(notes: LocalNote[]): void {
-  const persisted = notes.map(({ id, label, text, tone, col, row }) => ({
+  const persisted = notes.map(({ id, label, text, tone, col, row, archivedAt }) => ({
     id,
     label,
     text,
     tone,
     col,
     row,
+    ...(archivedAt ? { archivedAt } : {}),
   }));
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));

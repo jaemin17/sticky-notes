@@ -14,9 +14,11 @@ type DragState = {
 type UseNoteDragOptions = {
   boardRef: React.RefObject<HTMLElement | null>;
   trashRef?: React.RefObject<HTMLElement | null>;
+  archiveRef?: React.RefObject<HTMLElement | null>;
   disabled?: boolean;
   onMove: (noteId: string, col: number, row: number) => void;
   onDelete?: (noteId: string) => void;
+  onArchive?: (noteId: string) => void;
 };
 
 function isPointInRect(clientX: number, clientY: number, rect: DOMRect) {
@@ -28,16 +30,16 @@ function isPointInRect(clientX: number, clientY: number, rect: DOMRect) {
   );
 }
 
-/** Activate trash when any corner of the note enters the dashed drop zone. */
-function isNoteCornerInTrash(
+/** Activate a drop zone when any corner of the note enters it. */
+function isNoteCornerInDropZone(
   boardRect: DOMRect,
   noteLeft: number,
   noteTop: number,
-  trash: HTMLElement | null,
+  dropZone: HTMLElement | null,
 ) {
-  if (!trash) return false;
+  if (!dropZone) return false;
 
-  const trashRect = trash.getBoundingClientRect();
+  const dropZoneRect = dropZone.getBoundingClientRect();
   const width = NOTE_COL_SPAN * GRID;
   const height = NOTE_ROW_SPAN * GRID;
   const left = boardRect.left + noteLeft;
@@ -49,19 +51,22 @@ function isNoteCornerInTrash(
     [left + width, top + height],
   ];
 
-  return corners.some(([x, y]) => isPointInRect(x, y, trashRect));
+  return corners.some(([x, y]) => isPointInRect(x, y, dropZoneRect));
 }
 
 export function useNoteDrag({
   boardRef,
   trashRef,
+  archiveRef,
   disabled = false,
   onMove,
   onDelete,
+  onArchive,
 }: UseNoteDragOptions) {
   const dragStateRef = useRef<DragState | null>(null);
   const [draggingNoteId, setDraggingNoteId] = useState<string | null>(null);
   const [isOverTrash, setIsOverTrash] = useState(false);
+  const [isOverArchive, setIsOverArchive] = useState(false);
   const [previewPosition, setPreviewPosition] = useState<{ noteId: string; col: number; row: number } | null>(
     null,
   );
@@ -71,6 +76,7 @@ export function useNoteDrag({
     setDraggingNoteId(null);
     setPreviewPosition(null);
     setIsOverTrash(false);
+    setIsOverArchive(false);
   }, []);
 
   const finishDrag = useCallback(
@@ -92,10 +98,15 @@ export function useNoteDrag({
       const top = event.clientY - boardRect.top - dragState.grabOffsetY;
       const col = snapToCol(left);
       const row = snapToRow(top);
+      const noteLeft = col * GRID;
+      const noteTop = row * GRID;
 
       setPreviewPosition({ noteId: dragState.noteId, col, row });
       setIsOverTrash(
-        isNoteCornerInTrash(boardRect, col * GRID, row * GRID, trashRef?.current ?? null),
+        isNoteCornerInDropZone(boardRect, noteLeft, noteTop, trashRef?.current ?? null),
+      );
+      setIsOverArchive(
+        isNoteCornerInDropZone(boardRect, noteLeft, noteTop, archiveRef?.current ?? null),
       );
     }
 
@@ -114,9 +125,17 @@ export function useNoteDrag({
       const top = event.clientY - boardRect.top - dragState.grabOffsetY;
       const col = snapToCol(left);
       const row = snapToRow(top);
+      const noteLeft = col * GRID;
+      const noteTop = row * GRID;
 
-      if (isNoteCornerInTrash(boardRect, col * GRID, row * GRID, trashRef?.current ?? null)) {
+      if (isNoteCornerInDropZone(boardRect, noteLeft, noteTop, trashRef?.current ?? null)) {
         onDelete?.(dragState.noteId);
+        clearDrag();
+        return;
+      }
+
+      if (isNoteCornerInDropZone(boardRect, noteLeft, noteTop, archiveRef?.current ?? null)) {
+        onArchive?.(dragState.noteId);
         clearDrag();
         return;
       }
@@ -134,7 +153,7 @@ export function useNoteDrag({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerUp);
     };
-  }, [boardRef, clearDrag, finishDrag, onDelete, trashRef]);
+  }, [archiveRef, boardRef, clearDrag, finishDrag, onArchive, onDelete, trashRef]);
 
   function startDrag(event: React.PointerEvent<HTMLElement>, note: LocalNote) {
     if (disabled || event.button !== 0) return;
@@ -158,7 +177,8 @@ export function useNoteDrag({
 
     setDraggingNoteId(note.id);
     setPreviewPosition({ noteId: note.id, col: note.col, row: note.row });
-    setIsOverTrash(isNoteCornerInTrash(boardRect, noteLeft, noteTop, trashRef?.current ?? null));
+    setIsOverTrash(isNoteCornerInDropZone(boardRect, noteLeft, noteTop, trashRef?.current ?? null));
+    setIsOverArchive(isNoteCornerInDropZone(boardRect, noteLeft, noteTop, archiveRef?.current ?? null));
   }
 
   function getNotePosition(note: LocalNote): { col: number; row: number } {
@@ -172,6 +192,7 @@ export function useNoteDrag({
   return {
     draggingNoteId,
     isOverTrash,
+    isOverArchive,
     startDrag,
     getNotePosition,
   };

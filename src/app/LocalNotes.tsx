@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./page.module.css";
 import { arrangeNotesByVisualOrder, computeCanvasSize, findNewNotePlacement } from "./notePlacement";
 import { readStoredNotes, writeStoredNotes } from "./noteStorage";
@@ -50,18 +50,22 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [newNoteTone, setNewNoteTone] = useState<NoteTone>("yellow");
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
+  const [isArchiveDrawerOpen, setIsArchiveDrawerOpen] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
   const [emptyNotePlacement, setEmptyNotePlacement] = useState({ col: 0, row: 0 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
   const editingLabelInputRef = useRef<HTMLInputElement | null>(null);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const trashRef = useRef<HTMLDivElement | null>(null);
+  const archiveRef = useRef<HTMLButtonElement | null>(null);
   const toolbarColorCloseTimeoutRef = useRef<number | null>(null);
   const emptyStateTimerRef = useRef<number | null>(null);
   const isNarrowViewport = useNarrowViewport();
   const canDragDelete = !isNarrowViewport;
 
   const isEditing = Boolean(editingTextNoteId || editingLabelNoteId);
+  const activeNotes = useMemo(() => notes.filter((note) => !note.archivedAt), [notes]);
+  const archivedNotes = useMemo(() => notes.filter((note) => note.archivedAt), [notes]);
 
   function openToolbarColorMenu() {
     if (toolbarColorCloseTimeoutRef.current !== null) {
@@ -104,8 +108,9 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   function deleteNote(noteId: string) {
     setNotes((currentNotes) => {
       const nextNotes = currentNotes.filter((note) => note.id !== noteId);
+      const nextActiveNotes = nextNotes.filter((note) => !note.archivedAt);
 
-      if (currentNotes.length === 1 && nextNotes.length === 0) {
+      if (currentNotes.filter((note) => !note.archivedAt).length === 1 && nextActiveNotes.length === 0) {
         clearEmptyStateTimer();
         setEmptyStatePhase("hidden");
         emptyStateTimerRef.current = window.setTimeout(() => {
@@ -121,12 +126,39 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setEditingLabelNoteId((currentId) => (currentId === noteId ? null : currentId));
   }
 
-  const { draggingNoteId, isOverTrash, startDrag, getNotePosition } = useNoteDrag({
+  function archiveNote(noteId: string) {
+    clearEmptyStateTimer();
+    setNotes((currentNotes) =>
+      currentNotes.map((note) =>
+        note.id === noteId ? { ...note, archivedAt: new Date().toISOString() } : note,
+      ),
+    );
+    setEmptyStatePhase("visible");
+    setOpenMenuNoteId(null);
+    setEditingTextNoteId((currentId) => (currentId === noteId ? null : currentId));
+    setEditingLabelNoteId((currentId) => (currentId === noteId ? null : currentId));
+  }
+
+  function restoreNote(noteId: string) {
+    setNotes((currentNotes) =>
+      currentNotes.map((note) => {
+        if (note.id !== noteId) return note;
+        const restoredNote = { ...note };
+        delete restoredNote.archivedAt;
+        return restoredNote;
+      }),
+    );
+    setEmptyStatePhase("visible");
+  }
+
+  const { draggingNoteId, isOverTrash, isOverArchive, startDrag, getNotePosition } = useNoteDrag({
     boardRef,
     trashRef: canDragDelete ? trashRef : undefined,
+    archiveRef,
     disabled: isEditing,
     onMove: moveNote,
     onDelete: canDragDelete ? deleteNote : undefined,
+    onArchive: archiveNote,
   });
 
   useEffect(() => {
@@ -160,14 +192,14 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
   useEffect(() => {
     function updateCanvasSize() {
-      setCanvasSize(computeCanvasSize(notes, window.innerWidth, window.innerHeight));
+      setCanvasSize(computeCanvasSize(activeNotes, window.innerWidth, window.innerHeight));
       setEmptyNotePlacement(findNewNotePlacement([]));
     }
 
     updateCanvasSize();
     window.addEventListener("resize", updateCanvasSize);
     return () => window.removeEventListener("resize", updateCanvasSize);
-  }, [notes]);
+  }, [activeNotes]);
 
   useEffect(() => {
     function preventNoteTextSelection(event: Event) {
@@ -194,7 +226,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   function createBlankNote() {
     clearEmptyStateTimer();
     setEmptyStatePhase("visible");
-    const { col, row } = findNewNotePlacement(notes);
+    const { col, row } = findNewNotePlacement(activeNotes);
     const nextNote: LocalNote = {
       id: crypto.randomUUID(),
       label: defaultNoteLabel(notes.length, initialIndex),
@@ -256,7 +288,13 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   }
 
   function organizeNotes() {
-    setNotes((currentNotes) => arrangeNotesByVisualOrder(currentNotes));
+    setNotes((currentNotes) => {
+      const arrangedActiveNotes = arrangeNotesByVisualOrder(
+        currentNotes.filter((note) => !note.archivedAt),
+      );
+      const archivedCurrentNotes = currentNotes.filter((note) => note.archivedAt);
+      return [...arrangedActiveNotes, ...archivedCurrentNotes];
+    });
     setEditingTextNoteId(null);
     setEditingLabelNoteId(null);
     setOpenMenuNoteId(null);
@@ -283,11 +321,22 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     setIsClearAllDialogOpen(false);
   }
 
+  function closeArchiveDrawer() {
+    setIsArchiveDrawerOpen(false);
+  }
+
   function handleClearAllDialogKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     if (event.key !== "Escape") return;
 
     event.preventDefault();
     closeClearAllDialog();
+  }
+
+  function handleArchiveDrawerKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Escape") return;
+
+    event.preventDefault();
+    closeArchiveDrawer();
   }
 
   function isInteractiveDragTarget(target: EventTarget | null) {
@@ -315,7 +364,8 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
 
   const toolbarToneOptions = NOTE_TONES.filter((tone) => tone !== newNoteTone);
   const shouldShowEmptyState =
-    hasLoadedStoredNotes && notes.length === 0 && emptyStatePhase !== "hidden";
+    hasLoadedStoredNotes && activeNotes.length === 0 && emptyStatePhase !== "hidden";
+  const archiveTitle = `Archived notes (${archivedNotes.length})`;
   const emptyStateClassName = [
     styles.emptyStateNote,
     styles[newNoteTone],
@@ -358,7 +408,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
             <p className={styles.emptyStateText}>Write a note just for yourself...</p>
           </button>
         ) : null}
-        {notes.map((note, noteIndex) => {
+        {activeNotes.map((note, noteIndex) => {
           const noteTitle = note.label.trim() || defaultNoteLabel(noteIndex, initialIndex);
           const noteLabel = note.text.trim() || noteTitle || "New note";
           const { col, row } = getNotePosition(note);
@@ -466,6 +516,14 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                       >
                         Delete
                       </button>
+                      <button
+                        className={styles.archiveNoteButton}
+                        type="button"
+                        onClick={() => archiveNote(note.id)}
+                        aria-label={`Archive note: ${noteLabel}`}
+                      >
+                        Archive
+                      </button>
                     </div>
                   ) : null}
                 </div>
@@ -556,7 +614,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                   className={styles.toolbarActionButton}
                   type="button"
                   onClick={organizeNotes}
-                  disabled={notes.length <= 1}
+                  disabled={activeNotes.length <= 1}
                   aria-label="Organize notes"
                 >
                   Organize
@@ -593,6 +651,38 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
         </div>
       </div>
 
+      <button
+        ref={archiveRef}
+        className={[
+          styles.archiveZone,
+          draggingNoteId ? styles.archiveZoneActive : "",
+          isOverArchive ? styles.archiveZoneHover : "",
+          archivedNotes.length > 0 ? styles.archiveZoneHasNotes : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        type="button"
+        onClick={() => setIsArchiveDrawerOpen(true)}
+        aria-label="Open archived notes"
+      >
+        <svg
+          className={styles.archiveIcon}
+          viewBox="0 0 24 24"
+          focusable="false"
+          aria-hidden="true"
+        >
+          <path
+            fill="currentColor"
+            d="M4.65 5.55c0-.72.58-1.3 1.3-1.3h3.18c.38 0 .74.17.99.45l1.35 1.55h6.58c.72 0 1.3.58 1.3 1.3v1.05H4.65V5.55Z"
+          />
+          <path
+            fill="currentColor"
+            fillRule="evenodd"
+            d="M5.1 10h13.8c.77 0 1.4.63 1.4 1.4v5.9c0 1.33-1.07 2.4-2.4 2.4H6.1c-1.33 0-2.4-1.07-2.4-2.4v-5.9c0-.77.63-1.4 1.4-1.4Z"
+          />
+        </svg>
+      </button>
+
       {canDragDelete ? (
         <div
           ref={trashRef}
@@ -623,6 +713,59 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
               d="M5.55 7.85 6.55 19.9c.1 1.05.98 1.85 2.04 1.85h6.82c1.06 0 1.94-.8 2.04-1.85L18.45 7.85H5.55Zm3.05 2.35c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Zm3.4 0c.38 0 .68.3.68.68v5.8a.68.68 0 0 1-1.36 0v-5.8c0-.38.3-.68.68-.68Z"
             />
           </svg>
+        </div>
+      ) : null}
+
+      {isArchiveDrawerOpen ? (
+        <div
+          className={styles.archiveDrawerBackdrop}
+          onClick={closeArchiveDrawer}
+          onKeyDown={handleArchiveDrawerKeyDown}
+        >
+          <div
+            className={styles.archiveDrawer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="archive-drawer-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.archiveDrawerHeader}>
+              <h2 id="archive-drawer-title">{archiveTitle}</h2>
+              <button
+                className={styles.archiveDrawerCloseButton}
+                type="button"
+                onClick={closeArchiveDrawer}
+                aria-label="Close archived notes"
+              >
+                x
+              </button>
+            </div>
+            {archivedNotes.length > 0 ? (
+              <div className={styles.archiveList}>
+                {archivedNotes.map((note) => {
+                  const noteLabel = note.text.trim() || note.label || "Blank note";
+                  return (
+                    <article key={note.id} className={`${styles.archiveItem} ${styles[note.tone]}`}>
+                      <div className={styles.archiveItemText}>
+                        <span className={styles.archiveItemLabel}>{note.label}</span>
+                        <p>{note.text.trim() || "Blank note"}</p>
+                      </div>
+                      <button
+                        className={styles.restoreNoteButton}
+                        type="button"
+                        onClick={() => restoreNote(note.id)}
+                        aria-label={`Restore note: ${noteLabel}`}
+                      >
+                        Restore
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className={styles.archiveEmptyText}>No archived notes.</p>
+            )}
+          </div>
         </div>
       ) : null}
 

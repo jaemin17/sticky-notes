@@ -578,7 +578,8 @@
   background: var(--note-accent);
 }
 
-.deleteNoteButton {
+.deleteNoteButton,
+.archiveNoteButton {
   width: 100%;
   min-height: 28px;
   padding: 0 10px;
@@ -594,7 +595,8 @@
   transition: background 160ms ease, color 160ms ease;
 }
 
-.deleteNoteButton:hover {
+.deleteNoteButton:hover,
+.archiveNoteButton:hover {
   background: color-mix(in oklab, var(--note-accent) 44%, white);
 }
 
@@ -677,14 +679,194 @@
     drop-shadow(0 -0.75px 0.5px rgba(90, 70, 40, 0.14));
 }
 
-.trashZoneHover .trashIcon {
-  filter: drop-shadow(0 2px 6px rgba(211, 90, 22, 0.18));
+.archiveZone {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 148px;
+  height: 148px;
+  border: 2.5px dashed transparent;
+  border-radius: 20px;
+  background: transparent;
+  color: #eadfcd;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.archiveZone:hover {
+  color: #4f9fe8;
+}
+
+.archiveZoneActive {
+  border-color: rgba(17, 18, 23, 0.1);
+  color: #b9a98c;
+}
+
+.archiveZoneHover {
+  border-color: color-mix(in oklab, #4f9fe8 40%, rgba(17, 18, 23, 0.18));
+  color: #4f9fe8;
+}
+
+.archiveIcon {
+  display: block;
+  width: 66px;
+  height: 66px;
+  overflow: visible;
+  filter:
+    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
+    drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .trashLid {
+  .trashLid,
+  .archiveZone {
     transition-duration: 1ms;
   }
+}
+
+.archiveDrawerBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 38;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 24px;
+  background: rgba(17, 18, 23, 0.1);
+  backdrop-filter: blur(2px);
+}
+
+.archiveDrawer {
+  width: min(460px, 100%);
+  max-height: min(520px, calc(100vh - 48px));
+  padding: 16px;
+  border: 1px solid rgba(17, 18, 23, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 16px 34px rgba(17, 18, 23, 0.16);
+  color: rgba(17, 18, 23, 0.72);
+  font-family: var(--font-figtree), var(--font-geist-sans), system-ui, sans-serif;
+  overflow: hidden;
+}
+
+.archiveDrawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.archiveDrawerHeader h2 {
+  margin: 0;
+  color: rgba(17, 18, 23, 0.76);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.archiveDrawerCloseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: rgba(17, 18, 23, 0.52);
+  cursor: pointer;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+.archiveDrawerCloseButton:hover {
+  background: rgba(17, 18, 23, 0.06);
+  color: rgba(17, 18, 23, 0.68);
+}
+
+.archiveList {
+  display: grid;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.archiveItem {
+  --note-accent: #ffe176;
+  --note-color: #d35a16;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 74px;
+  padding: 10px;
+  border: 1px solid rgba(17, 18, 23, 0.1);
+  border-left: 6px solid var(--note-accent);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--note-accent) 18%, white);
+}
+
+.archiveItemText {
+  min-width: 0;
+}
+
+.archiveItemLabel {
+  display: block;
+  color: color-mix(in oklab, var(--note-color) 74%, #111217);
+  font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1;
+  margin-bottom: 5px;
+}
+
+.archiveItemText p,
+.archiveEmptyText {
+  margin: 0;
+  color: rgba(17, 18, 23, 0.64);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.archiveItemText p {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.restoreNoteButton {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(17, 18, 23, 0.12);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.48);
+  color: color-mix(in oklab, var(--note-color) 72%, #111217);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.restoreNoteButton:hover {
+  border-color: color-mix(in oklab, var(--note-color) 28%, rgba(17, 18, 23, 0.18));
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .toolbarColorMenu {
