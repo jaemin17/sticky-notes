@@ -683,7 +683,7 @@
   position: fixed;
   left: max(16px, env(safe-area-inset-left));
   bottom: max(16px, env(safe-area-inset-bottom));
-  z-index: 1;
+  z-index: 12;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -814,9 +814,9 @@
   min-height: 74px;
   padding: 10px;
   border: 1px solid rgba(17, 18, 23, 0.1);
-  border-left: 6px solid var(--note-accent);
+  border-left: 4px solid var(--note-accent);
   border-radius: 8px;
-  background: color-mix(in oklab, var(--note-accent) 18%, white);
+  background: color-mix(in oklab, var(--note-accent) 36%, white);
 }
 
 .archiveItemText {
@@ -832,12 +832,12 @@
   margin-bottom: 5px;
 }
 
-.archiveItemText p,
-.archiveEmptyText {
+.archiveItemText p {
   margin: 0;
-  color: rgba(17, 18, 23, 0.64);
-  font-size: 13px;
-  font-weight: 500;
+  color: rgba(17, 18, 23, 0.58);
+  font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.35;
 }
 
@@ -847,6 +847,14 @@
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.archiveEmptyText {
+  margin: 0;
+  color: rgba(17, 18, 23, 0.64);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
 }
 
 .restoreNoteButton {

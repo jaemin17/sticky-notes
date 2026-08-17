@@ -675,6 +675,14 @@ describe("LocalNotes", () => {
     expect(PAGE_CSS).not.toContain(".archiveCount");
   });
 
+  test("keeps archived note rows visually close to the original sticky notes", () => {
+    expect(cssRuleBody("archiveItem")).toContain("border-left: 4px solid var(--note-accent);");
+    expect(cssRuleBody("archiveItem")).toContain("background: color-mix(in oklab, var(--note-accent) 36%, white);");
+    expect(cssRuleBody("archiveItemText p")).toContain(
+      "font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;",
+    );
+  });
+
   test("keeps the trash zone below notes and the toolbar", () => {
     const trashZ = cssRuleZIndex("trashZone");
     const noteZ = cssRuleZIndex("note");
@@ -684,6 +692,17 @@ describe("LocalNotes", () => {
     expect(trashZ).toBeLessThan(noteZ);
     expect(trashZ).toBeLessThan(canvasZ);
     expect(trashZ).toBeLessThan(toolbarZ);
+  });
+
+  test("keeps the clickable archive zone above the canvas but below the toolbar", () => {
+    const archiveZ = cssRuleZIndex("archiveZone");
+    const noteZ = cssRuleZIndex("note");
+    const canvasZ = cssRuleZIndex("canvas");
+    const toolbarZ = cssRuleZIndex("noteToolbar");
+
+    expect(archiveZ).toBeGreaterThan(noteZ);
+    expect(archiveZ).toBeGreaterThan(canvasZ);
+    expect(archiveZ).toBeLessThan(toolbarZ);
   });
 
   test("hides the trash drop zone on narrow viewports", () => {
