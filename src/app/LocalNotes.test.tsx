@@ -676,7 +676,10 @@ describe("LocalNotes", () => {
   });
 
   test("keeps archived note rows visually close to the original sticky notes", () => {
-    expect(cssRuleBody("archiveItem")).toContain("border-left: 4px solid var(--note-accent);");
+    expect(cssRuleBody("archiveItem")).not.toContain("--note-accent:");
+    expect(cssRuleBody("archiveItem")).not.toContain("--note-color:");
+    expect(cssRuleBody("archiveItem")).not.toContain("border-left:");
+    expect(cssRuleBody("archiveItem")).toContain("border-radius: 4px;");
     expect(cssRuleBody("archiveItem")).toContain("background: color-mix(in oklab, var(--note-accent) 36%, white);");
     expect(cssRuleBody("archiveItemText p")).toContain(
       "font-family: var(--font-kalam), var(--font-geist-sans), system-ui, sans-serif;",
@@ -787,8 +790,19 @@ describe("LocalNotes", () => {
     await user.click(screen.getByRole("button", { name: "Open archived notes" }));
     expect(screen.getByRole("dialog", { name: "Archived notes (1)" })).toBeInTheDocument();
     expect(screen.getByText("先收起来")).toBeInTheDocument();
+    const restoreButton = screen.getByRole("button", { name: "Restore note: 先收起来" });
+    expect(restoreButton).not.toHaveTextContent("Restore");
+    expect(restoreButton.querySelector("svg")).toBeInTheDocument();
+    expect(LOCAL_NOTES_TSX).toContain('strokeWidth="2.8"');
+    expect(LOCAL_NOTES_TSX).toContain('d="m15 14 5-5-5-5"');
+    expect(LOCAL_NOTES_TSX).toContain('d="M19 9h-8.5a5.5 5.5 0 1 0 3.9 9.4"');
+    expect(LOCAL_NOTES_TSX).not.toContain('d="M9 14 4 9l5-5"');
+    expect(cssRuleBody("restoreNoteButton")).toContain("border: 0;");
+    expect(cssRuleBody("restoreNoteButton")).toContain("color: rgba(17, 18, 23, 0.32);");
+    expect(cssRuleBody("restoreNoteButton:hover")).toContain("background: transparent;");
+    expect(cssRuleBody("restoreNoteButton:hover")).toContain("color: rgba(17, 18, 23, 0.56);");
 
-    await user.click(screen.getByRole("button", { name: "Restore note: 先收起来" }));
+    await user.click(restoreButton);
     expect(await screen.findByRole("article", { name: /先收起来/ })).toBeInTheDocument();
     expect(window.localStorage.getItem("sticky-notes.local-notes")).not.toContain('"archivedAt":');
 

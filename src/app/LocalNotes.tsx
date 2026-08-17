@@ -756,7 +756,24 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                         onClick={() => restoreNote(note.id)}
                         aria-label={`Restore note: ${noteLabel}`}
                       >
-                        Restore
+                        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                          <path
+                            d="m15 14 5-5-5-5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.8"
+                          />
+                          <path
+                            d="M19 9h-8.5a5.5 5.5 0 1 0 3.9 9.4"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.8"
+                          />
+                        </svg>
                       </button>
                     </article>
                   );

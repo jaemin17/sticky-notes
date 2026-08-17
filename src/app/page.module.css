@@ -805,8 +805,6 @@
 }
 
 .archiveItem {
-  --note-accent: #ffe176;
-  --note-color: #d35a16;
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
@@ -814,8 +812,7 @@
   min-height: 74px;
   padding: 10px;
   border: 1px solid rgba(17, 18, 23, 0.1);
-  border-left: 4px solid var(--note-accent);
-  border-radius: 8px;
+  border-radius: 4px;
   background: color-mix(in oklab, var(--note-accent) 36%, white);
 }
 
@@ -858,23 +855,29 @@
 }
 
 .restoreNoteButton {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 1px solid rgba(17, 18, 23, 0.12);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
   border-radius: 7px;
-  background: rgba(255, 255, 255, 0.48);
-  color: color-mix(in oklab, var(--note-color) 72%, #111217);
+  background: transparent;
+  color: rgba(17, 18, 23, 0.32);
   cursor: pointer;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 650;
-  line-height: 1;
-  transition: background 160ms ease, border-color 160ms ease;
+  padding: 0;
+  transition: color 160ms ease;
+}
+
+.restoreNoteButton svg {
+  display: block;
+  width: 17px;
+  height: 17px;
 }
 
 .restoreNoteButton:hover {
-  border-color: color-mix(in oklab, var(--note-color) 28%, rgba(17, 18, 23, 0.18));
-  background: rgba(255, 255, 255, 0.72);
+  background: transparent;
+  color: rgba(17, 18, 23, 0.56);
 }
 
 .toolbarColorMenu {
