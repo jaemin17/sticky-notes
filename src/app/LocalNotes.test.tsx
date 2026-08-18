@@ -11,6 +11,10 @@ import { GRID, NOTE_COL_SPAN, NOTE_ROW_SPAN } from "./noteTypes";
 const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
 const PAGE_CSS = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "page.module.css"), "utf8");
 const LOCAL_NOTES_TSX = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "LocalNotes.tsx"), "utf8");
+const ARCHIVE_FOLDER_PATHS_TS = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), "archiveFolderPaths.ts"),
+  "utf8",
+);
 
 function cssRuleZIndex(className: string) {
   const match = PAGE_CSS.match(new RegExp(`\\.${className}\\s*\\{([^}]*)\\}`));
@@ -651,17 +655,18 @@ describe("LocalNotes", () => {
     expect(cssRuleBody("archiveZone")).toContain("height: 148px;");
     expect(cssRuleBody("archiveIcon")).toContain("width: 66px;");
     expect(cssRuleBody("archiveIcon")).toContain("height: 66px;");
-    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55");
-    expect(LOCAL_NOTES_TSX).toContain("M5.1 10h13.8c.77 0 1.4.63 1.4 1.4");
+    expect(ARCHIVE_FOLDER_PATHS_TS).toContain("4.65");
+    expect(ARCHIVE_FOLDER_PATHS_TS).toContain("13.8");
   });
 
-  test("uses split archive folder parts for the open hover shape", () => {
-    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveTopClosed}");
-    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveFrontClosed}");
-    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveTopOpen}");
-    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveFrontOpen}");
-    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55c0-.72.58-1.3 1.3-1.3");
-    expect(LOCAL_NOTES_TSX).toContain("M7.1 10.8h13.55");
+  test("uses animated archive folder paths instead of duplicate open and closed layers", () => {
+    expect(LOCAL_NOTES_TSX).toContain("getArchiveFolderPaths");
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveTop}");
+    expect(LOCAL_NOTES_TSX).toContain("className={styles.archiveFront}");
+    expect(LOCAL_NOTES_TSX).not.toContain("archiveTopClosed");
+    expect(LOCAL_NOTES_TSX).not.toContain("archiveTopOpen");
+    expect(LOCAL_NOTES_TSX).not.toContain("archiveFrontClosed");
+    expect(LOCAL_NOTES_TSX).not.toContain("archiveFrontOpen");
   });
 
   test("keeps archive default color aligned with the trash zone without hover", () => {
@@ -670,34 +675,25 @@ describe("LocalNotes", () => {
   });
 
   test("uses a blue folder color for opening archive hover", () => {
-    expect(cssRuleBody("archiveZone:hover")).toContain("color: #78bdf2;");
+    expect(cssRuleBody("archiveZone:hover")).toContain("color: #2f9cf4;");
     expect(cssRuleBody("archiveZone:hover")).not.toContain("#b9a98c");
-    expect(cssRuleBody("archiveZoneHover")).toContain("#78bdf2");
+    expect(cssRuleBody("archiveZoneHover")).toContain("#2f9cf4");
     expect(cssRuleBody("archiveZoneHover")).not.toContain("#16884b");
     expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon");
   });
 
-  test("animates the archive folder between closed and open shapes", () => {
-    expect(LOCAL_NOTES_TSX).toContain("styles.archiveTopClosed");
-    expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontClosed");
-    expect(LOCAL_NOTES_TSX).toContain("styles.archiveTopOpen");
-    expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontOpen");
-    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55c0-.72");
-    expect(LOCAL_NOTES_TSX).toContain("H8.25c-1.22 0-2.34.72-2.92 1.86l-.68 1.4");
-    expect(LOCAL_NOTES_TSX).toContain("M7.1 10.8h13.55");
-    expect(LOCAL_NOTES_TSX).toContain("L18.15 19.66H5.5");
-
-    expect(cssRuleBody("archiveTopClosed,\n.archiveFrontClosed")).toContain("transform-box: fill-box;");
-    expect(cssRuleBody("archiveTopOpen")).toContain("opacity: 0;");
-    expect(cssRuleBody("archiveTopOpen")).toContain("transform: scale(0.98);");
-    expect(cssRuleBody("archiveFrontOpen")).toContain("transform: scale(0.97);");
-    expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopClosed");
-    expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontClosed");
-    expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopOpen");
-    expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontOpen");
-    expect(PAGE_CSS).toContain("transform: scale(1);");
-    expect(PAGE_CSS).not.toContain("translateY(-0.6px)");
-    expect(PAGE_CSS).not.toContain("translateY(-0.5px)");
+  test("keeps archive folder animation out of opacity cross-fades", () => {
+    expect(cssRuleBody("archiveTop,\n.archiveFront")).toContain("fill: currentColor;");
+    expect(cssRuleBody("archiveTop,\n.archiveFront")).not.toContain("opacity:");
+    expect(cssRuleBody("archiveTop,\n.archiveFront")).not.toContain("transform:");
+    expect(PAGE_CSS).not.toContain(".archiveZone:hover .archiveTop");
+    expect(PAGE_CSS).not.toContain(".archiveZoneHover .archiveFront");
+    expect(PAGE_CSS).not.toContain("rotate(-5deg)");
+    expect(PAGE_CSS).not.toContain("scaleY(0.9)");
+    expect(PAGE_CSS).not.toContain("archiveTopClosed");
+    expect(PAGE_CSS).not.toContain("archiveTopOpen");
+    expect(PAGE_CSS).not.toContain("archiveFrontClosed");
+    expect(PAGE_CSS).not.toContain("archiveFrontOpen");
   });
 
   test("keeps archive count out of the folder icon", () => {

@@ -708,7 +708,7 @@
 }
 
 .archiveZone:hover {
-  color: #78bdf2;
+  color: #2f9cf4;
 }
 
 .archiveZoneActive {
@@ -717,8 +717,8 @@
 }
 
 .archiveZoneHover {
-  border-color: color-mix(in oklab, #78bdf2 40%, rgba(17, 18, 23, 0.18));
-  color: #78bdf2;
+  border-color: color-mix(in oklab, #2f9cf4 40%, rgba(17, 18, 23, 0.18));
+  color: #2f9cf4;
 }
 
 .archiveIcon {
@@ -731,57 +731,14 @@
     drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
 }
 
-.archiveTopClosed,
-.archiveFrontClosed {
+.archiveTop,
+.archiveFront {
   fill: currentColor;
-  transform-box: fill-box;
-  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
-}
-
-.archiveTopOpen {
-  fill: currentColor;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 45% 55%;
-  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
-  transform: scale(0.98);
-}
-
-.archiveFrontOpen {
-  fill: currentColor;
-  opacity: 0;
-  transform-box: fill-box;
-  transform-origin: 55% 25%;
-  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
-  transform: scale(0.97);
-}
-
-.archiveZone:hover .archiveTopClosed,
-.archiveZone:hover .archiveFrontClosed,
-.archiveZoneHover .archiveTopClosed,
-.archiveZoneHover .archiveFrontClosed {
-  opacity: 0;
-}
-
-.archiveZone:hover .archiveTopOpen,
-.archiveZoneHover .archiveTopOpen {
-  opacity: 1;
-  transform: scale(1);
-}
-
-.archiveZone:hover .archiveFrontOpen,
-.archiveZoneHover .archiveFrontOpen {
-  opacity: 1;
-  transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .trashLid,
-  .archiveZone,
-  .archiveTopClosed,
-  .archiveFrontClosed,
-  .archiveTopOpen,
-  .archiveFrontOpen {
+  .archiveZone {
     transition-duration: 1ms;
   }
 }

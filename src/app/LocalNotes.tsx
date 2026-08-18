@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { getArchiveFolderPaths } from "./archiveFolderPaths";
 import styles from "./page.module.css";
 import { arrangeNotesByVisualOrder, computeCanvasSize, findNewNotePlacement } from "./notePlacement";
 import { readStoredNotes, writeStoredNotes } from "./noteStorage";
@@ -19,7 +20,56 @@ import {
 import { useNoteDrag } from "./useNoteDrag";
 
 const EMPTY_NOTE_REAPPEAR_DELAY_MS = 400;
+const ARCHIVE_FOLDER_ANIMATION_MS = 190;
 const NARROW_VIEWPORT_QUERY = "(max-width: 760px)";
+
+function easeArchiveFolderProgress(progress: number) {
+  return 1 - (1 - progress) ** 3;
+}
+
+function useArchiveFolderProgress(isOpen: boolean) {
+  const [progress, setProgress] = useState(isOpen ? 1 : 0);
+  const progressRef = useRef(progress);
+
+  useEffect(() => {
+    const targetProgress = isOpen ? 1 : 0;
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const startProgress = progressRef.current;
+    const startTime = performance.now();
+    let animationFrameId = 0;
+
+    if (prefersReducedMotion) {
+      animationFrameId = window.requestAnimationFrame(() => {
+        progressRef.current = targetProgress;
+        setProgress(targetProgress);
+      });
+      return () => window.cancelAnimationFrame(animationFrameId);
+    }
+
+    function animateFrame(now: number) {
+      const elapsed = now - startTime;
+      const rawProgress = Math.min(elapsed / ARCHIVE_FOLDER_ANIMATION_MS, 1);
+      const easedProgress = easeArchiveFolderProgress(rawProgress);
+      const nextProgress = startProgress + (targetProgress - startProgress) * easedProgress;
+
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
+
+      if (rawProgress < 1) {
+        animationFrameId = window.requestAnimationFrame(animateFrame);
+      }
+    }
+
+    animationFrameId = window.requestAnimationFrame(animateFrame);
+    return () => window.cancelAnimationFrame(animationFrameId);
+  }, [isOpen]);
+
+  return progress;
+}
 
 function useNarrowViewport() {
   const [isNarrow, setIsNarrow] = useState(() => {
@@ -51,6 +101,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
   const [isToolbarColorMenuOpen, setIsToolbarColorMenuOpen] = useState(false);
   const [isClearAllDialogOpen, setIsClearAllDialogOpen] = useState(false);
   const [isArchiveDrawerOpen, setIsArchiveDrawerOpen] = useState(false);
+  const [isArchiveZoneHovered, setIsArchiveZoneHovered] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ cols: 16, rows: 12 });
   const [emptyNotePlacement, setEmptyNotePlacement] = useState({ col: 0, row: 0 });
   const editingTextAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -160,6 +211,11 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     onDelete: canDragDelete ? deleteNote : undefined,
     onArchive: archiveNote,
   });
+  const archiveFolderProgress = useArchiveFolderProgress(isArchiveZoneHovered || isOverArchive);
+  const archiveFolderPaths = useMemo(
+    () => getArchiveFolderPaths(archiveFolderProgress),
+    [archiveFolderProgress],
+  );
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -664,6 +720,10 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           .join(" ")}
         type="button"
         onClick={() => setIsArchiveDrawerOpen(true)}
+        onPointerEnter={() => setIsArchiveZoneHovered(true)}
+        onPointerLeave={() => setIsArchiveZoneHovered(false)}
+        onFocus={() => setIsArchiveZoneHovered(true)}
+        onBlur={() => setIsArchiveZoneHovered(false)}
         aria-label="Open archived notes"
       >
         <svg
@@ -673,20 +733,12 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           aria-hidden="true"
         >
           <path
-            className={styles.archiveTopClosed}
-            d="M4.65 5.55c0-.72.58-1.3 1.3-1.3h3.18c.38 0 .74.17.99.45l1.35 1.55h6.58c.72 0 1.3.58 1.3 1.3v1.05H4.65V5.55Z"
+            className={styles.archiveTop}
+            d={archiveFolderPaths.top}
           />
           <path
-            className={styles.archiveFrontClosed}
-            d="M5.1 10h13.8c.77 0 1.4.63 1.4 1.4v5.9c0 1.33-1.07 2.4-2.4 2.4H6.1c-1.33 0-2.4-1.07-2.4-2.4v-5.9c0-.77.63-1.4 1.4-1.4Z"
-          />
-          <path
-            className={styles.archiveTopOpen}
-            d="M4.65 5.55c0-.72.58-1.3 1.3-1.3h3.18c.38 0 .74.17.99.45l1.35 1.55h6.58c.72 0 1.3.58 1.3 1.3v1.05H8.25c-1.22 0-2.34.72-2.92 1.86l-.68 1.4V5.55Z"
-          />
-          <path
-            className={styles.archiveFrontOpen}
-            d="M7.1 10.8h13.55c.92 0 1.48.82 1.15 1.66l-1.45 4.58c-.36 1.06-1.08 2.62-2.2 2.62L18.15 19.66H5.5c-.96 0-1.58-.92-1.21-1.82l1.42-4.18c.4-1.22.82-2.86 1.39-2.86Z"
+            className={styles.archiveFront}
+            d={archiveFolderPaths.front}
           />
         </svg>
       </button>
