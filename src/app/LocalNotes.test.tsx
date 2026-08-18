@@ -673,7 +673,10 @@ describe("LocalNotes", () => {
     expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontClosed");
     expect(LOCAL_NOTES_TSX).toContain("styles.archiveTopOpen");
     expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontOpen");
-    expect(LOCAL_NOTES_TSX).toContain("M8.02 9.72h11.76");
+    expect(LOCAL_NOTES_TSX).toContain("M4.65 5.55c0-.72");
+    expect(LOCAL_NOTES_TSX).toContain("H8.25c-1.22 0-2.34.72-2.92 1.86l-.68 1.4");
+    expect(LOCAL_NOTES_TSX).toContain("M7.1 10.8h13.55");
+    expect(LOCAL_NOTES_TSX).toContain("L18.15 19.66H5.5");
 
     expect(cssRuleBody("archiveTopClosed,\n.archiveFrontClosed")).toContain("transform-box: fill-box;");
     expect(cssRuleBody("archiveTopOpen")).toContain("opacity: 0;");
