@@ -109,6 +109,10 @@
   margin: 0 auto;
 }
 
+.canvasDragging {
+  z-index: 16;
+}
+
 .emptyStateNote {
   --note-accent: #ffe176;
   --note-color: #d35a16;
@@ -212,6 +216,7 @@
 }
 
 .noteDragging {
+  z-index: 3;
   cursor: grabbing;
   border-color: rgba(17, 18, 23, 0.22);
   box-shadow: 0 22px 36px rgba(17, 18, 23, 0.18);
@@ -726,9 +731,57 @@
     drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
 }
 
+.archiveTopClosed,
+.archiveFrontClosed {
+  fill: currentColor;
+  transform-box: fill-box;
+  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
+}
+
+.archiveTopOpen {
+  fill: currentColor;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 45% 55%;
+  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
+  transform: translateY(0.4px) scale(0.98);
+}
+
+.archiveFrontOpen {
+  fill: currentColor;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 55% 25%;
+  transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
+  transform: translateY(-1px) scale(0.97);
+}
+
+.archiveZone:hover .archiveTopClosed,
+.archiveZone:hover .archiveFrontClosed,
+.archiveZoneHover .archiveTopClosed,
+.archiveZoneHover .archiveFrontClosed {
+  opacity: 0;
+}
+
+.archiveZone:hover .archiveTopOpen,
+.archiveZoneHover .archiveTopOpen {
+  opacity: 1;
+  transform: translateY(-0.6px) scale(1);
+}
+
+.archiveZone:hover .archiveFrontOpen,
+.archiveZoneHover .archiveFrontOpen {
+  opacity: 1;
+  transform: translateY(-0.5px) scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .trashLid,
-  .archiveZone {
+  .archiveZone,
+  .archiveTopClosed,
+  .archiveFrontClosed,
+  .archiveTopOpen,
+  .archiveFrontOpen {
     transition-duration: 1ms;
   }
 }

@@ -378,7 +378,9 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     <>
       <div
         ref={boardRef}
-        className={styles.canvas}
+        className={[styles.canvas, draggingNoteId ? styles.canvasDragging : ""]
+          .filter(Boolean)
+          .join(" ")}
         style={{
           width: canvasSize.cols * GRID,
           height: canvasSize.rows * GRID,
@@ -427,7 +429,6 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
                 top: row * GRID,
                 width: NOTE_COL_SPAN * GRID,
                 height: NOTE_ROW_SPAN * GRID,
-                zIndex: isDragging ? 100 : undefined,
               }}
               aria-label={`${note.text.trim() ? "My note" : "New note"}: ${noteLabel}, drag empty space to move`}
               aria-grabbed={isDragging}
@@ -672,13 +673,20 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
           aria-hidden="true"
         >
           <path
-            fill="currentColor"
+            className={styles.archiveTopClosed}
             d="M4.65 5.55c0-.72.58-1.3 1.3-1.3h3.18c.38 0 .74.17.99.45l1.35 1.55h6.58c.72 0 1.3.58 1.3 1.3v1.05H4.65V5.55Z"
           />
           <path
-            fill="currentColor"
-            fillRule="evenodd"
+            className={styles.archiveFrontClosed}
             d="M5.1 10h13.8c.77 0 1.4.63 1.4 1.4v5.9c0 1.33-1.07 2.4-2.4 2.4H6.1c-1.33 0-2.4-1.07-2.4-2.4v-5.9c0-.77.63-1.4 1.4-1.4Z"
+          />
+          <path
+            className={styles.archiveTopOpen}
+            d="M4.65 5.55c0-.72.58-1.3 1.3-1.3h3.18c.38 0 .74.17.99.45l1.35 1.55h6.58c.72 0 1.3.58 1.3 1.3v1.05H8.1c-1.18 0-2.26.66-2.8 1.7l-.65 1.25v-6Z"
+          />
+          <path
+            className={styles.archiveFrontOpen}
+            d="M8.02 9.72h11.76c1.08 0 1.83 1.07 1.47 2.09l-1.55 5.77c-.41 1.19-1.5 2.08-2.76 2.08H5.92c-1.1 0-1.86-1.11-1.46-2.14l1.6-4.92c.46-1.55 1.25-2.88 1.96-2.88Z"
           />
         </svg>
       </button>

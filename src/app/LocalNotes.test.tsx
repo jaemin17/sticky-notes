@@ -663,11 +663,28 @@ describe("LocalNotes", () => {
   test("uses a blue folder color for opening archive hover", () => {
     expect(cssRuleBody("archiveZone:hover")).toContain("color: #4f9fe8;");
     expect(cssRuleBody("archiveZone:hover")).not.toContain("#b9a98c");
-    expect(PAGE_CSS).not.toContain(".archiveZone:hover .archiveIcon");
     expect(cssRuleBody("archiveZoneHover")).toContain("#4f9fe8");
     expect(cssRuleBody("archiveZoneHover")).not.toContain("#16884b");
-    expect(PAGE_CSS).not.toContain(".archiveZoneHover .archiveIcon");
     expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon");
+  });
+
+  test("animates the archive folder between closed and open shapes", () => {
+    expect(LOCAL_NOTES_TSX).toContain("styles.archiveTopClosed");
+    expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontClosed");
+    expect(LOCAL_NOTES_TSX).toContain("styles.archiveTopOpen");
+    expect(LOCAL_NOTES_TSX).toContain("styles.archiveFrontOpen");
+    expect(LOCAL_NOTES_TSX).toContain("M8.02 9.72h11.76");
+
+    expect(cssRuleBody("archiveTopClosed,\n.archiveFrontClosed")).toContain("transform-box: fill-box;");
+    expect(cssRuleBody("archiveTopOpen")).toContain("opacity: 0;");
+    expect(cssRuleBody("archiveTopOpen")).toContain("transform: translateY(0.4px) scale(0.98);");
+    expect(cssRuleBody("archiveFrontOpen")).toContain("transform: translateY(-1px) scale(0.97);");
+    expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopClosed");
+    expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontClosed");
+    expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopOpen");
+    expect(PAGE_CSS).toContain("transform: translateY(-0.6px) scale(1);");
+    expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontOpen");
+    expect(PAGE_CSS).toContain("transform: translateY(-0.5px) scale(1);");
   });
 
   test("keeps archive count out of the folder icon", () => {
@@ -706,6 +723,21 @@ describe("LocalNotes", () => {
     expect(archiveZ).toBeGreaterThan(noteZ);
     expect(archiveZ).toBeGreaterThan(canvasZ);
     expect(archiveZ).toBeLessThan(toolbarZ);
+  });
+
+  test("keeps dragged notes above the archive zone while regular archive hover stays above notes", () => {
+    const archiveZ = cssRuleZIndex("archiveZone");
+    const canvasZ = cssRuleZIndex("canvas");
+    const draggingCanvasZ = cssRuleZIndex("canvasDragging");
+    const noteZ = cssRuleZIndex("note");
+    const draggingNoteZ = cssRuleZIndex("noteDragging");
+    const toolbarZ = cssRuleZIndex("noteToolbar");
+
+    expect(archiveZ).toBeGreaterThan(canvasZ);
+    expect(archiveZ).toBeGreaterThan(noteZ);
+    expect(draggingCanvasZ).toBeGreaterThan(archiveZ);
+    expect(draggingCanvasZ).toBeLessThan(toolbarZ);
+    expect(draggingNoteZ).toBeGreaterThan(noteZ);
   });
 
   test("hides the trash drop zone on narrow viewports", () => {
