@@ -708,7 +708,7 @@
 }
 
 .archiveZone:hover {
-  color: #4f9fe8;
+  color: #78bdf2;
 }
 
 .archiveZoneActive {
@@ -717,8 +717,8 @@
 }
 
 .archiveZoneHover {
-  border-color: color-mix(in oklab, #4f9fe8 40%, rgba(17, 18, 23, 0.18));
-  color: #4f9fe8;
+  border-color: color-mix(in oklab, #78bdf2 40%, rgba(17, 18, 23, 0.18));
+  color: #78bdf2;
 }
 
 .archiveIcon {
