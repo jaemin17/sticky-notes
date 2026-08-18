@@ -669,9 +669,19 @@ describe("LocalNotes", () => {
     expect(LOCAL_NOTES_TSX).not.toContain("archiveFrontOpen");
   });
 
+  test("opens the archive folder shape while any note is held", () => {
+    expect(LOCAL_NOTES_TSX).toContain(
+      "useArchiveFolderProgress(isArchiveZoneHovered || Boolean(draggingNoteId))",
+    );
+  });
+
   test("keeps archive default color aligned with the trash zone without hover", () => {
     expect(cssRuleBody("archiveZone")).toContain("color: #eadfcd;");
     expect(PAGE_CSS).not.toMatch(/\.archiveZoneHasNotes\s*\{[^}]*color:/);
+  });
+
+  test("matches the trash active color while a note is held", () => {
+    expect(cssRuleBody("archiveZoneActive")).toContain("color: #b9a98c;");
   });
 
   test("uses a blue folder color for opening archive hover", () => {

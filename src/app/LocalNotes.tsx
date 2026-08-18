@@ -211,7 +211,7 @@ export function LocalNotes({ initialIndex }: { initialIndex: number }) {
     onDelete: canDragDelete ? deleteNote : undefined,
     onArchive: archiveNote,
   });
-  const archiveFolderProgress = useArchiveFolderProgress(isArchiveZoneHovered || isOverArchive);
+  const archiveFolderProgress = useArchiveFolderProgress(isArchiveZoneHovered || Boolean(draggingNoteId));
   const archiveFolderPaths = useMemo(
     () => getArchiveFolderPaths(archiveFolderProgress),
     [archiveFolderProgress],
