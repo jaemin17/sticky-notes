@@ -677,14 +677,15 @@ describe("LocalNotes", () => {
 
     expect(cssRuleBody("archiveTopClosed,\n.archiveFrontClosed")).toContain("transform-box: fill-box;");
     expect(cssRuleBody("archiveTopOpen")).toContain("opacity: 0;");
-    expect(cssRuleBody("archiveTopOpen")).toContain("transform: translateY(0.4px) scale(0.98);");
-    expect(cssRuleBody("archiveFrontOpen")).toContain("transform: translateY(-1px) scale(0.97);");
+    expect(cssRuleBody("archiveTopOpen")).toContain("transform: scale(0.98);");
+    expect(cssRuleBody("archiveFrontOpen")).toContain("transform: scale(0.97);");
     expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopClosed");
     expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontClosed");
     expect(PAGE_CSS).toContain(".archiveZone:hover .archiveTopOpen");
-    expect(PAGE_CSS).toContain("transform: translateY(-0.6px) scale(1);");
     expect(PAGE_CSS).toContain(".archiveZoneHover .archiveFrontOpen");
-    expect(PAGE_CSS).toContain("transform: translateY(-0.5px) scale(1);");
+    expect(PAGE_CSS).toContain("transform: scale(1);");
+    expect(PAGE_CSS).not.toContain("translateY(-0.6px)");
+    expect(PAGE_CSS).not.toContain("translateY(-0.5px)");
   });
 
   test("keeps archive count out of the folder icon", () => {

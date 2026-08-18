@@ -744,7 +744,7 @@
   transform-box: fill-box;
   transform-origin: 45% 55%;
   transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
-  transform: translateY(0.4px) scale(0.98);
+  transform: scale(0.98);
 }
 
 .archiveFrontOpen {
@@ -753,7 +753,7 @@
   transform-box: fill-box;
   transform-origin: 55% 25%;
   transition: opacity 170ms ease, transform 190ms cubic-bezier(0.34, 1.08, 0.64, 1);
-  transform: translateY(-1px) scale(0.97);
+  transform: scale(0.97);
 }
 
 .archiveZone:hover .archiveTopClosed,
@@ -766,13 +766,13 @@
 .archiveZone:hover .archiveTopOpen,
 .archiveZoneHover .archiveTopOpen {
   opacity: 1;
-  transform: translateY(-0.6px) scale(1);
+  transform: scale(1);
 }
 
 .archiveZone:hover .archiveFrontOpen,
 .archiveZoneHover .archiveFrontOpen {
   opacity: 1;
-  transform: translateY(-0.5px) scale(1);
+  transform: scale(1);
 }
 
 @media (prefers-reduced-motion: reduce) {
