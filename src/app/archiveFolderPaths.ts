@@ -4,7 +4,7 @@ type ArchiveFolderPaths = {
 };
 
 const CLOSED_TOP: readonly number[] = [4.65, 0, 0, 0, 0, 0, 0, 0, 0];
-const OPEN_TOP: readonly number[] = [7.95, -1.02, 0, -2.02, 0.58, -2.58, 1.58, -0.5, 1.22];
+const OPEN_TOP: readonly number[] = [7.95, -1.02, 0, -2, 0.54, -2.58, 1.5, -0.68, 1.12];
 
 const CLOSED_FRONT: readonly number[] = [
   5.1, 10, 13.8, 0.77, 0, 1.4, 0.63, 1.4, 1.4, 0, 5.9, 0, 1.33, -1.07, 2.4,
