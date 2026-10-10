@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { LocalNotes } from "./LocalNotes";
 import styles from "./page.module.css";
@@ -764,6 +766,47 @@ describe("LocalNotes", () => {
     render(<LocalNotes initialIndex={0} />);
 
     expect(screen.queryByLabelText("Drag here to delete note")).not.toBeInTheDocument();
+  });
+
+  test("keeps viewport detection out of the initial render to avoid hydration mismatch", () => {
+    const viewportHook = LOCAL_NOTES_TSX.match(
+      /function useNarrowViewport\(\) \{[\s\S]*?\n\}/,
+    )?.[0];
+
+    expect(viewportHook).toBeTruthy();
+    expect(viewportHook).not.toContain("useState(() =>");
+    expect(viewportHook).toContain("useEffect");
+  });
+
+  test("hydrates without a mismatch when the client starts on a narrow viewport", async () => {
+    Object.defineProperty(window, "matchMedia", {
+      configurable: true,
+      writable: true,
+      value: undefined,
+    });
+    const serverHtml = renderToString(<LocalNotes initialIndex={0} />);
+    const container = document.createElement("div");
+    container.innerHTML = serverHtml;
+    document.body.append(container);
+    mockViewport(true);
+
+    const recoverableErrors: unknown[] = [];
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+
+    await act(async () => {
+      root = hydrateRoot(container, <LocalNotes initialIndex={0} />, {
+        onRecoverableError(error) {
+          recoverableErrors.push(error);
+        },
+      });
+    });
+
+    expect(recoverableErrors.map(String).join("\n")).not.toContain("Hydration failed");
+
+    await act(async () => {
+      root?.unmount();
+    });
+    container.remove();
   });
 
   test("archives a note when a card corner enters the archive zone and restores it from the drawer", async () => {

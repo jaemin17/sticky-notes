@@ -72,10 +72,7 @@ function useArchiveFolderProgress(isOpen: boolean) {
 }
 
 function useNarrowViewport() {
-  const [isNarrow, setIsNarrow] = useState(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-    return window.matchMedia(NARROW_VIEWPORT_QUERY).matches;
-  });
+  const [isNarrow, setIsNarrow] = useState(false);
 
   useEffect(() => {
     if (typeof window.matchMedia !== "function") return;
