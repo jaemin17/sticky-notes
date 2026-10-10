@@ -677,8 +677,9 @@ describe("LocalNotes", () => {
     );
   });
 
-  test("keeps archive default color aligned with the trash zone without hover", () => {
-    expect(cssRuleBody("archiveZone")).toContain("color: #eadfcd;");
+  test("keeps archive default color translucent without adding blur", () => {
+    expect(cssRuleBody("archiveZone")).toContain("color: rgb(219 207 188 / 58%);");
+    expect(cssRuleBody("archiveIcon")).not.toContain("blur(");
     expect(PAGE_CSS).not.toMatch(/\.archiveZoneHasNotes\s*\{[^}]*color:/);
   });
 

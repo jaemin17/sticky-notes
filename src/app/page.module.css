@@ -697,7 +697,7 @@
   border: 2.5px dashed transparent;
   border-radius: 20px;
   background: transparent;
-  color: #eadfcd;
+  color: rgb(219 207 188 / 58%);
   cursor: pointer;
   padding: 0;
   transition:
