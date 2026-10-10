@@ -658,10 +658,16 @@
   width: 60px;
   height: 60px;
   overflow: visible;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
-    drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
-  transition: color 160ms ease, filter 160ms ease;
+}
+
+.trashIcon path {
+  stroke: rgb(118 103 82 / 20%);
+  stroke-width: 0.45;
+}
+
+.trashZoneActive .trashIcon path,
+.trashZoneHover .trashIcon path {
+  stroke: color-mix(in oklab, currentColor 24%, transparent);
 }
 
 .trashLid {
@@ -676,12 +682,6 @@
 
 .trashZoneHover .trashLid {
   transform: rotate(-34deg) translateY(-3px);
-}
-
-.trashZoneActive .trashIcon {
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.5))
-    drop-shadow(0 -0.75px 0.5px rgba(90, 70, 40, 0.14));
 }
 
 .archiveZone {
@@ -726,14 +726,22 @@
   width: 66px;
   height: 66px;
   overflow: visible;
-  filter:
-    drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35))
-    drop-shadow(0 -0.5px 0.4px rgba(90, 70, 40, 0.08));
 }
 
 .archiveTop,
 .archiveFront {
   fill: currentColor;
+  stroke: rgb(118 103 82 / 20%);
+  stroke-width: 0.45;
+}
+
+.archiveZone:hover .archiveTop,
+.archiveZone:hover .archiveFront,
+.archiveZoneActive .archiveTop,
+.archiveZoneActive .archiveFront,
+.archiveZoneHover .archiveTop,
+.archiveZoneHover .archiveFront {
+  stroke: color-mix(in oklab, currentColor 24%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

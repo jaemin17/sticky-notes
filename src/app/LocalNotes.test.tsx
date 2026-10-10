@@ -646,6 +646,30 @@ describe("LocalNotes", () => {
     expect(screen.getByLabelText("Drag here to delete note")).toBeInTheDocument();
   });
 
+  test("uses a very subtle trash icon stroke without adding a container outline", () => {
+    expect(cssRuleBody("trashZone")).toContain("border: 2.5px dashed transparent;");
+    expect(cssRuleBody("trashIcon path")).toContain("stroke: rgb(118 103 82 / 20%);");
+    expect(cssRuleBody("trashIcon path")).toContain("stroke-width: 0.45;");
+    expect(cssRuleBody("trashIcon")).not.toContain("blur(");
+    expect(cssRuleBody("trashIcon")).not.toContain("drop-shadow");
+    expect(PAGE_CSS).not.toContain(".trashZoneActive .trashIcon {");
+  });
+
+  test("uses current trash action color for icon stroke while active or hovered", () => {
+    expect(cssRuleBody("trashZoneActive .trashIcon path,\n.trashZoneHover .trashIcon path")).toContain(
+      "stroke: color-mix(in oklab, currentColor 24%, transparent);",
+    );
+  });
+
+  test("uses one continuous trash lid silhouette", () => {
+    const lidPath = LOCAL_NOTES_TSX.match(/<g className=\{styles\.trashLid\}>[\s\S]*?d="([^"]+)"/)?.[1];
+
+    expect(lidPath).toBeTruthy();
+    expect(lidPath?.match(/\bM/g)).toHaveLength(1);
+    expect(lidPath).toContain("v.85h3.55");
+    expect(lidPath).not.toContain("ZM");
+  });
+
   test("shows an archive drop zone in the bottom-left corner", () => {
     render(<LocalNotes initialIndex={0} />);
 
@@ -683,6 +707,21 @@ describe("LocalNotes", () => {
     expect(PAGE_CSS).not.toMatch(/\.archiveZoneHasNotes\s*\{[^}]*color:/);
   });
 
+  test("uses a very subtle archive folder stroke without adding a container outline", () => {
+    expect(cssRuleBody("archiveZone")).toContain("border: 2.5px dashed transparent;");
+    expect(cssRuleBody("archiveTop,\n.archiveFront")).toContain("stroke: rgb(118 103 82 / 20%);");
+    expect(cssRuleBody("archiveTop,\n.archiveFront")).toContain("stroke-width: 0.45;");
+    expect(cssRuleBody("archiveIcon")).not.toContain("drop-shadow");
+  });
+
+  test("uses current archive action color for folder stroke while hovered", () => {
+    expect(
+      cssRuleBody(
+        "archiveZone:hover .archiveTop,\n.archiveZone:hover .archiveFront,\n.archiveZoneActive .archiveTop,\n.archiveZoneActive .archiveFront,\n.archiveZoneHover .archiveTop,\n.archiveZoneHover .archiveFront",
+      ),
+    ).toContain("stroke: color-mix(in oklab, currentColor 24%, transparent);");
+  });
+
   test("matches the trash active color while a note is held", () => {
     expect(cssRuleBody("archiveZoneActive")).toContain("color: #b9a98c;");
   });
@@ -692,15 +731,13 @@ describe("LocalNotes", () => {
     expect(cssRuleBody("archiveZone:hover")).not.toContain("#b9a98c");
     expect(cssRuleBody("archiveZoneHover")).toContain("#2f9cf4");
     expect(cssRuleBody("archiveZoneHover")).not.toContain("#16884b");
-    expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon");
+    expect(PAGE_CSS).not.toContain(".trashZoneHover .trashIcon {");
   });
 
   test("keeps archive folder animation out of opacity cross-fades", () => {
     expect(cssRuleBody("archiveTop,\n.archiveFront")).toContain("fill: currentColor;");
     expect(cssRuleBody("archiveTop,\n.archiveFront")).not.toContain("opacity:");
     expect(cssRuleBody("archiveTop,\n.archiveFront")).not.toContain("transform:");
-    expect(PAGE_CSS).not.toContain(".archiveZone:hover .archiveTop");
-    expect(PAGE_CSS).not.toContain(".archiveZoneHover .archiveFront");
     expect(PAGE_CSS).not.toContain("rotate(-5deg)");
     expect(PAGE_CSS).not.toContain("scaleY(0.9)");
     expect(PAGE_CSS).not.toContain("archiveTopClosed");
